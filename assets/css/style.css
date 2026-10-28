@@ -75,6 +75,12 @@ button, input, select { font: inherit; color: inherit; }
 .brand-text { letter-spacing: -0.02em; }
 .brand .dim { color: var(--text-faint); font-weight: 500; }
 .header-nav { display: flex; align-items: center; gap: 6px; }
+.lang-select {
+  height: 34px; max-width: 118px; padding: 0 8px; margin-right: 2px; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+  color: var(--text-dim); font: inherit; font-size: 13px;
+}
+.lang-select:hover { color: var(--text); border-color: var(--border-strong); }
 .header-nav a:not(.gh-link) { padding: 8px 12px; border-radius: 10px; color: var(--text-dim); font-size: 14px; }
 .header-nav a:not(.gh-link):hover { color: var(--text); background: var(--surface); }
 .gh-link { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; color: var(--text-dim); }

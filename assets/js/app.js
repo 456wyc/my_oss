@@ -8,6 +8,8 @@
   const $ = (sel) => document.querySelector(sel);
   const esc = (s) =>
     String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const t = (k, v) => (window.I18N ? window.I18N.t(k, v) : k);
+  const loc = () => (window.I18N ? window.I18N.getLocale() : 'zh-CN');
 
   const LANG_COLORS = {
     TypeScript: '#3178c6', JavaScript: '#f1e05a', Python: '#3572a5', CSS: '#563d7c',
@@ -20,14 +22,21 @@
 
   const relTime = (iso) => {
     if (!iso) return '—';
-    const diff = Date.now() - new Date(iso).getTime();
-    const d = Math.floor(diff / 86400000);
-    if (d < 1) return '今天';
-    if (d < 30) return `${d} 天前`;
-    if (d < 365) return `${Math.floor(d / 30)} 个月前`;
-    return `${Math.floor(d / 365)} 年前`;
+    const d = Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+    try {
+      const rtf = new Intl.RelativeTimeFormat(loc(), { numeric: 'auto' });
+      if (d < 1) return rtf.format(0, 'day');
+      if (d < 30) return rtf.format(-d, 'day');
+      if (d < 365) return rtf.format(-Math.floor(d / 30), 'month');
+      return rtf.format(-Math.floor(d / 365), 'year');
+    } catch {
+      if (d < 1) return '今天';
+      if (d < 30) return `${d} 天前`;
+      if (d < 365) return `${Math.floor(d / 30)} 个月前`;
+      return `${Math.floor(d / 365)} 年前`;
+    }
   };
-  const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString('zh-CN') : '—');
+  const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(loc()) : '—');
   const num = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n ?? 0));
 
   /* ---------------- 主题 ---------------- */
@@ -51,29 +60,44 @@
   const langSet = new Set(projects.map((p) => p.language).filter(Boolean));
   const liveCount = projects.filter((p) => p.hasPages || p.demoUrl).length;
 
-  $('#heroStats').innerHTML = [
-    [projects.length, '开源项目'],
-    [liveCount, 'Pages 主页'],
-    [langSet.size, '主力语言'],
-    [mitCount, 'MIT 开源'],
-  ].map(([v, l]) => `<div><div class="stat-value">${v}</div><div class="stat-label">${l}</div></div>`).join('');
+  const renderHero = () => {
+    $('#heroStats').innerHTML = [
+      [projects.length, t('stat.projects')],
+      [liveCount, t('stat.pages')],
+      [langSet.size, t('stat.langs')],
+      [mitCount, t('stat.mit')],
+    ].map(([v, l]) => `<div><div class="stat-value">${v}</div><div class="stat-label">${l}</div></div>`).join('');
 
-  $('#heroPill').textContent = `${projects.length} 个开源项目 · 持续更新`;
-  $('#cloneSample').textContent = `git clone ${(projects[0] || {}).cloneUrl || ''}`;
+    $('#heroPill').textContent = t('hero.pill', { count: projects.length });
 
-  // Hero 右侧「产品看板」模拟窗口
-  $('#mockBody').innerHTML =
-    '<div class="mock-title">项目主页</div>' +
-    projects
-      .slice(0, 5)
-      .map(
-        (p) => `<div class="mock-row">
+    const t1 = t('hero.t1');
+    const t2 = t('hero.t2');
+    $('#heroTitle').innerHTML =
+      `${esc(t1)}<br />${t2 ? `${esc(t2)} ` : ''}<span class="grad">${esc(t('hero.tHi'))}</span>`;
+
+    $('#mockBody').innerHTML =
+      `<div class="mock-title">${esc(t('mock.title'))}</div>` +
+      projects
+        .slice(0, 5)
+        .map(
+          (p) => `<div class="mock-row">
         <i class="mini-dot" style="background:linear-gradient(135deg,${esc(p.accent[0])},${esc(p.accent[1])})"></i>
         <span class="mock-name">${esc(p.name)}</span>
         <span class="mock-meta">${esc(relTime(p.pushedAt))}</span>
       </div>`
-      )
-      .join('');
+        )
+        .join('');
+  };
+
+  // 步骤中含链接/代码的文案
+  const renderSteps = () => {
+    const s1 = $('#step1');
+    const s3 = $('#step3');
+    if (s1) s1.innerHTML = t('s1.d');
+    if (s3) s3.innerHTML = t('s3.d');
+    const clone = document.getElementById('cloneSample');
+    if (clone) clone.textContent = `git clone ${(projects[0] || {}).cloneUrl || ''}`;
+  };
 
   // 页脚项目链接
   $('#footerProjects').innerHTML = projects
@@ -111,11 +135,11 @@
         <p class="muted">${esc(p.description)}</p>
         <ul class="sc-points">
           ${(p.highlights || []).map((h) => `<li>${esc(h)}</li>`).join('')}
-          ${p.language ? `<li>${esc(p.language)} · ${esc(p.license || '开源许可未声明')}</li>` : ''}
+          ${p.language ? `<li>${esc(p.language)} · ${esc(p.license || t('modal.licenseNone'))}</li>` : ''}
         </ul>
         <div class="sc-actions">
-          ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">打开项目主页 ↗</a>` : ''}
-          <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">查看源码</a>
+          ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">${esc(t('modal.openHome'))} ↗</a>` : ''}
+          <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">${esc(t('card.source'))}</a>
         </div>
       </div>`;
   };
@@ -129,16 +153,21 @@
   renderShowcase();
 
   $('#aboutAvatar').src = owner.avatarUrl || `https://github.com/${owner.login || '456wyc'}.png`;
-  $('#aboutName').textContent = owner.name || owner.login || '关于我';
-  $('#aboutBio').textContent =
-    owner.bio || `${projects.length} 个开源项目的集中展示页，涵盖桌面应用、效率工具与 AI 实验。`;
   $('#aboutGithub').href = owner.htmlUrl || 'https://github.com/456wyc';
   $('#headerGithub').href = owner.htmlUrl || 'https://github.com/456wyc';
   $('#heroGithub').href = owner.htmlUrl || 'https://github.com/456wyc';
-  $('#year').textContent = new Date().getFullYear();
-  if (DATA.generatedAt) {
-    $('#generatedAt').textContent = `数据更新于 ${new Date(DATA.generatedAt).toLocaleString('zh-CN')}`;
-  }
+
+  const renderTexts = () => {
+    $('#aboutName').textContent = owner.name || owner.login || t('about.title');
+    $('#aboutBio').textContent = owner.bio || t('about.bioFallback');
+    $('#year').textContent = new Date().getFullYear();
+    $('#footerRights').textContent = t('foot.rights', { year: new Date().getFullYear() });
+    if (DATA.generatedAt) {
+      $('#generatedAt').textContent = t('foot.updated', {
+        time: new Date(DATA.generatedAt).toLocaleString(loc()),
+      });
+    }
+  };
 
   /* ---------------- 筛选状态 ---------------- */
   const state = { q: '', category: 'all', tag: 'all', sort: 'pushed' };
@@ -196,8 +225,8 @@
       <div class="card-banner" style="background:${banner}">
         <div class="card-initial" style="background:${banner}">${esc(p.name[0].toUpperCase())}</div>
         <div class="badges">
-          ${p.featured ? '<span class="badge">精选</span>' : ''}
-          ${p.archived ? '<span class="badge warn">已归档</span>' : ''}
+          ${p.featured ? `<span class="badge">${esc(t('card.featured'))}</span>` : ''}
+          ${p.archived ? `<span class="badge warn">${esc(t('card.archived'))}</span>` : ''}
         </div>
       </div>
       <div class="card-body">
@@ -205,7 +234,7 @@
           <h3 class="card-title"><a href="${esc(p.url)}" target="_blank" rel="noreferrer">${esc(p.name)}</a></h3>
           <span class="card-cat">${esc(p.category)}</span>
         </div>
-        <p class="card-desc">${esc(p.description || '暂无描述')}</p>
+        <p class="card-desc">${esc(p.description || t('card.noDesc'))}</p>
         ${(p.highlights || []).length ? `<div class="highlights">${p.highlights.map((h) => `<span class="highlight">${esc(h)}</span>`).join('')}</div>` : ''}
         ${langs.length ? `<div class="langbar">${langs.map((l) => `<span style="width:${l.percent}%;background:${langColor(l.name)}" title="${esc(l.name)} ${l.percent}%"></span>`).join('')}</div>` : ''}
         <div class="card-tags">${(p.tags || []).slice(0, 4).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>
@@ -217,9 +246,9 @@
         </div>
       </div>
       <div class="card-actions">
-        ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">项目主页 ↗</a>` : ''}
-        <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">源码</a>
-        <button class="btn ghost icon" type="button" data-detail="${esc(p.id)}" aria-label="详情">⋯</button>
+        ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">${esc(t('card.demo'))} ↗</a>` : ''}
+        <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">${esc(t('card.source'))}</a>
+        <button class="btn ghost icon" type="button" data-detail="${esc(p.id)}" aria-label="${esc(t('card.detail'))}">⋯</button>
       </div>
     </article>`;
   };
@@ -237,13 +266,13 @@
   };
 
   const render = () => {
-    renderChips($('#categoryFilters'), categories, 'category', '全部分类');
-    renderChips($('#tagFilters'), tags, 'tag', '全部标签');
+    renderChips($('#categoryFilters'), categories, 'category', t('filter.allCategory'));
+    renderChips($('#tagFilters'), tags, 'tag', t('filter.allTag'));
 
     const list = visible();
     grid.innerHTML = list.map(cardHTML).join('');
     empty.hidden = list.length > 0;
-    $('#resultCount').textContent = `共 ${list.length} 个项目`;
+    $('#resultCount').textContent = t('prod.count', { n: list.length });
     reveal(Array.from(grid.children));
   };
 
@@ -276,22 +305,22 @@
           <div class="muted" style="font-size:13px">${esc(p.fullName)} · ${esc(p.category)}</div>
         </div>
       </div>
-      <p class="modal-desc">${esc(p.description || '暂无描述')}</p>
+      <p class="modal-desc">${esc(p.description || t('card.noDesc'))}</p>
       <div class="meta-grid">
-        <div class="meta-cell"><div class="k">STARS</div><div class="v">${num(p.stars)}</div></div>
-        <div class="meta-cell"><div class="k">FORKS</div><div class="v">${num(p.forks)}</div></div>
-        <div class="meta-cell"><div class="k">ISSUES</div><div class="v">${num(p.issues)}</div></div>
-        <div class="meta-cell"><div class="k">LICENSE</div><div class="v">${esc(p.license || '未声明')}</div></div>
-        <div class="meta-cell"><div class="k">创建</div><div class="v">${fmtDate(p.createdAt)}</div></div>
-        <div class="meta-cell"><div class="k">最近推送</div><div class="v">${esc(relTime(p.pushedAt))}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.stars'))}</div><div class="v">${num(p.stars)}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.forks'))}</div><div class="v">${num(p.forks)}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.issues'))}</div><div class="v">${num(p.issues)}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.license'))}</div><div class="v">${esc(p.license || t('modal.licenseNone'))}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.created'))}</div><div class="v">${fmtDate(p.createdAt)}</div></div>
+        <div class="meta-cell"><div class="k">${esc(t('modal.pushed'))}</div><div class="v">${esc(relTime(p.pushedAt))}</div></div>
       </div>
-      ${(p.languages || []).length ? `<h4 style="margin:18px 0 10px">语言构成</h4>${p.languages.map((l) => `<div class="lang-row"><span class="lang-name">${esc(l.name)}</span><span class="lang-track"><span class="lang-fill" style="width:${l.percent}%;background:${langColor(l.name)}"></span></span><span class="lang-pct">${l.percent}%</span></div>`).join('')}` : ''}
-      ${(p.tags || []).length ? `<div class="card-tags" style="margin-top:14px">${p.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join('')}</div>` : ''}
-      <div class="clone-box"><code>git clone ${esc(p.cloneUrl)}</code><button class="btn small ghost" type="button" data-copy="${esc(p.cloneUrl)}">复制</button></div>
+      ${(p.languages || []).length ? `<h4 style="margin:18px 0 10px">${esc(t('modal.langTitle'))}</h4>${p.languages.map((l) => `<div class="lang-row"><span class="lang-name">${esc(l.name)}</span><span class="lang-track"><span class="lang-fill" style="width:${l.percent}%;background:${langColor(l.name)}"></span></span><span class="lang-pct">${l.percent}%</span></div>`).join('')}` : ''}
+      ${(p.tags || []).length ? `<div class="card-tags" style="margin-top:14px">${p.tags.map((tg) => `<span class="tag">${esc(tg)}</span>`).join('')}</div>` : ''}
+      <div class="clone-box"><code>git clone ${esc(p.cloneUrl)}</code><button class="btn small ghost" type="button" data-copy="${esc(p.cloneUrl)}">${esc(t('modal.copy'))}</button></div>
       <div class="modal-actions">
-        ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">打开项目主页 ↗</a>` : ''}
-        <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">GitHub 仓库</a>
-        <a class="btn ghost" href="${esc(p.url)}/releases" target="_blank" rel="noreferrer">Releases</a>
+        ${p.demoUrl ? `<a class="btn primary" href="${esc(p.demoUrl)}" target="_blank" rel="noreferrer">${esc(t('modal.openHome'))} ↗</a>` : ''}
+        <a class="btn ghost" href="${esc(p.url)}" target="_blank" rel="noreferrer">${esc(t('modal.repo'))}</a>
+        <a class="btn ghost" href="${esc(p.url)}/releases" target="_blank" rel="noreferrer">${esc(t('modal.releases'))}</a>
       </div>`;
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
@@ -322,18 +351,30 @@
   const copy = async (text, msg) => {
     try {
       await navigator.clipboard.writeText(text);
-      showToast(msg || '已复制');
+      showToast(msg || t('toast.copied'));
     } catch {
-      showToast('复制失败，请手动选择');
+      showToast(t('toast.copyFail'));
     }
   };
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('[data-copy]');
-    if (btn) copy(btn.dataset.copy, '已复制 clone 命令');
+    if (btn) copy(btn.dataset.copy, t('toast.cloneCopied'));
   });
   $('#copyCloneAll').addEventListener('click', () =>
-    copy(projects.map((p) => `${p.fullName}\t${p.url}`).join('\n'), `已复制 ${projects.length} 个仓库`)
+    copy(
+      projects.map((p) => `${p.fullName}\t${p.url}`).join('\n'),
+      t('toast.listCopied', { n: projects.length })
+    )
   );
 
-  render();
+  /* ---------------- 多语言切换 ---------------- */
+  const renderAll = () => {
+    renderHero();
+    renderSteps();
+    renderTexts();
+    renderShowcase();
+    render();
+  };
+  window.addEventListener('localechange', renderAll);
+  renderAll();
 })();

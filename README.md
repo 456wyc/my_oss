@@ -8,10 +8,14 @@
 
 ```
 .
-├── index.html                 # 页面
+├── index.html                 # 产品官网式落地页
+├── apps.html                  # 站点入口页（Launchpad）
 ├── assets/
 │   ├── css/style.css
-│   └── js/app.js
+│   └── js/
+│       ├── i18n.js            # 多语言词典（简/繁/英/法/日/韩）
+│       ├── app.js
+│       └── apps.js
 ├── data/
 │   ├── projects.config.json   # 人工维护：仓库清单、分类、标签、主题色
 │   ├── projects.json          # 自动生成：完整元数据
@@ -60,6 +64,10 @@ npm run dev      # 本地预览 http://localhost:4321
 
 - 关键词搜索（按 `/` 聚焦）、分类 / 标签筛选、四种排序
 - 深浅色主题自动跟随系统，可手动切换并记忆
+- **六语种切换**：简体中文 / 繁體中文 / English / Français / 日本語 / 한국어
+  - 顶部下拉选择，写入 `localStorage`；首次访问按浏览器语言自动判定
+  - 支持 `?lang=ja` 这类 URL 参数覆盖；日期与「x 天前」等用 `Intl` 按语种格式化
+  - 新增词条只需在 `assets/js/i18n.js` 的 `DICT` 中补齐 6 份
 - 卡片直接跳转「项目主页」（各项目自己的 Pages 站点）与源码
 - `apps.html`：所有 GitHub Pages 站点的入口页（Launchpad 风格）
 - 详情弹窗：star/fork/issue、许可证、语言占比、一键复制 clone 命令
