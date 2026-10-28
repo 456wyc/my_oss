@@ -1,0 +1,50 @@
+{
+  "owner": "456wyc",
+  "repos": [
+    {
+      "repo": "KeyRing",
+      "category": "桌面应用",
+      "tags": ["Electron", "React", "TypeScript", "密码管理"],
+      "accent": ["#6366f1", "#a855f7"],
+      "featured": true,
+      "highlights": ["跨平台桌面端", "本地加密存储"]
+    },
+    {
+      "repo": "art-styles-gallery",
+      "category": "创意前端",
+      "tags": ["前端", "艺术风格", "画廊"],
+      "accent": ["#f43f5e", "#f59e0b"],
+      "featured": true,
+      "highlights": ["风格速览", "一键复制提示词"]
+    },
+    {
+      "repo": "browser-sandbox",
+      "category": "效率工具",
+      "tags": ["浏览器", "环境隔离", "多账号"],
+      "accent": ["#0ea5e9", "#22c55e"],
+      "featured": true,
+      "highlights": ["独立浏览器环境", "同一站点多开"]
+    },
+    {
+      "repo": "NBrowser",
+      "category": "AI 应用",
+      "tags": ["AI", "浏览器", "股票"],
+      "accent": ["#8b5cf6", "#ec4899"],
+      "highlights": ["炒股专用", "AI 辅助浏览"]
+    },
+    {
+      "repo": "pdf-tool",
+      "category": "效率工具",
+      "tags": ["PDF", "在线工具", "JavaScript"],
+      "accent": ["#14b8a6", "#3b82f6"],
+      "highlights": ["纯网页端", "无需上传服务器"]
+    },
+    {
+      "repo": "hotdog",
+      "category": "效率工具",
+      "tags": ["快捷键", "冲突检测", "Python"],
+      "accent": ["#f97316", "#ef4444"],
+      "highlights": ["热键冲突检测"]
+    }
+  ]
+}

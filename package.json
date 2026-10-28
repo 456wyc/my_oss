@@ -1,0 +1,13 @@
+{
+  "name": "oss-pages",
+  "version": "1.0.0",
+  "private": true,
+  "description": "个人开源项目集中展示页（GitHub Pages 静态站点）",
+  "type": "module",
+  "scripts": {
+    "sync": "node scripts/sync.mjs",
+    "dev": "node scripts/serve.mjs",
+    "start": "node scripts/serve.mjs",
+    "build": "node scripts/sync.mjs"
+  }
+}

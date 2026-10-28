@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>在线站点 · 456wyc</title>
+<meta name="description" content="456wyc 的所有 GitHub Pages 在线站点入口。" />
+<meta name="theme-color" content="#0b0f1a" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='url(%23g)'/%3E%3Ctext x='50' y='68' font-size='46' font-family='monospace' font-weight='bold' text-anchor='middle' fill='%23fff'%3E%E2%86%97%3C/text%3E%3C/svg%3E" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><span class="blob b2"></span><span class="blob b1"></span></div>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="index.html">
+        <svg class="brand-mark" viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+          <defs>
+            <linearGradient id="brandGradLp" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#22d3ee" /><stop offset="1" stop-color="#6366f1" />
+            </linearGradient>
+          </defs>
+          <rect width="32" height="32" rx="9" fill="url(#brandGradLp)" />
+          <g fill="#fff">
+            <rect x="7" y="7" width="8" height="8" rx="2.6" opacity="0.95" />
+            <rect x="17" y="7" width="8" height="8" rx="2.6" opacity="0.6" />
+            <rect x="7" y="17" width="8" height="8" rx="2.6" opacity="0.6" />
+            <rect x="17" y="17" width="8" height="8" rx="2.6" opacity="0.34" />
+          </g>
+        </svg>
+        <span class="brand-text">在线站点<span class="dim">/launchpad</span></span>
+      </a>
+      <nav class="header-nav">
+        <a href="index.html">项目档案</a>
+        <a class="gh-link" href="https://github.com/456wyc" target="_blank" rel="noreferrer" aria-label="GitHub">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.4-3.88-1.4-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.79 1.2 1.79 1.2 1.04 1.79 2.73 1.27 3.4.97.1-.76.4-1.27.73-1.56-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.4-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.2.67.8.56A11.5 11.5 0 0 0 23.5 12A11.5 11.5 0 0 0 12 .5Z"/></svg>
+        </a>
+        <button id="themeToggle" class="icon-btn" type="button" aria-label="切换主题"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="lp-top">
+      <div class="wrap lp-top-inner">
+        <input id="lpSearch" class="lp-input" type="search" placeholder="筛选站点…" autocomplete="off" />
+        <p class="lp-hint"><span id="lpCount"></span> 个站点 · 部署于 GitHub Pages</p>
+      </div>
+    </section>
+
+    <section class="wrap">
+      <div class="lp-grid" id="lpGrid"></div>
+      <p class="empty" id="lpEmpty" hidden>没有匹配的站点</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <span>© <span id="year"></span> 456wyc · <a href="index.html" style="text-decoration:underline;text-underline-offset:3px">返回项目档案</a></span>
+      <span class="muted" id="generatedAt"></span>
+    </div>
+  </footer>
+
+  <script src="data/projects.js"></script>
+  <script src="assets/js/apps.js"></script>
+</body>
+</html>
