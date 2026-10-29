@@ -10,6 +10,10 @@
     String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const t = (k, v) => (window.I18N ? window.I18N.t(k, v) : k);
   const loc = () => (window.I18N ? window.I18N.getLocale() : 'zh-CN');
+  const setText = (sel, v) => {
+    const el = $(sel);
+    if (el) el.textContent = v;
+  };
 
   const LANG_COLORS = {
     TypeScript: '#3178c6', JavaScript: '#f1e05a', Python: '#3572a5', CSS: '#563d7c',
@@ -158,10 +162,11 @@
   $('#heroGithub').href = owner.htmlUrl || 'https://github.com/456wyc';
 
   const renderTexts = () => {
+    const year = new Date().getFullYear();
     $('#aboutName').textContent = owner.name || owner.login || t('about.title');
     $('#aboutBio').textContent = owner.bio || t('about.bioFallback');
-    $('#year').textContent = new Date().getFullYear();
-    $('#footerRights').textContent = t('foot.rights', { year: new Date().getFullYear() });
+    setText('#year', year); // 入口页才有 #year；首页年份写在 foot.rights 里
+    $('#footerRights').textContent = t('foot.rights', { year });
     if (DATA.generatedAt) {
       $('#generatedAt').textContent = t('foot.updated', {
         time: new Date(DATA.generatedAt).toLocaleString(loc()),
