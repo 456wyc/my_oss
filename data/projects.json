@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-10-28T09:20:05.432Z",
+  "generatedAt": "2026-10-29T17:02:25.963Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
     "bio": "",
     "avatarUrl": "https://avatars.githubusercontent.com/u/3086528?v=4",
     "htmlUrl": "https://github.com/456wyc",
-    "publicRepos": 29,
+    "publicRepos": 31,
     "followers": 28
   },
   "projects": [
@@ -369,6 +369,70 @@
       ],
       "highlights": [
         "热键冲突检测"
+      ],
+      "featured": false
+    },
+    {
+      "id": "word-world",
+      "name": "word-world",
+      "fullName": "456wyc/word-world",
+      "description": "网页查词、翻译时顺便把词句保存下来，在浏览网页时随机弹出历史查询记录学习巩固",
+      "url": "https://github.com/456wyc/word-world",
+      "cloneUrl": "https://github.com/456wyc/word-world.git",
+      "demoUrl": "https://456wyc.github.io/word-world/",
+      "homepageHost": "456wyc.github.io",
+      "demoTitle": "Word World — 划词查词、生词本与网页随机复习",
+      "demoDescription": "Word World 是 Chrome / Edge 扩展：网页划词即查词翻译，结果自动收进生词本，并按间隔重复在浏览时以字幕条、弹幕或角落卡片浮现复习。数据只存本地，无遥测。",
+      "language": "TypeScript",
+      "languages": [
+        {
+          "name": "TypeScript",
+          "value": 171008,
+          "percent": 89.1
+        },
+        {
+          "name": "CSS",
+          "value": 17590,
+          "percent": 9.2
+        },
+        {
+          "name": "JavaScript",
+          "value": 2648,
+          "percent": 1.4
+        },
+        {
+          "name": "HTML",
+          "value": 712,
+          "percent": 0.4
+        }
+      ],
+      "stars": 0,
+      "forks": 0,
+      "issues": 0,
+      "watchers": 0,
+      "license": "MIT",
+      "topics": [],
+      "archived": false,
+      "createdAt": "2026-10-29T16:34:14Z",
+      "updatedAt": "2026-10-29T16:58:24Z",
+      "pushedAt": "2026-10-29T16:58:19Z",
+      "defaultBranch": "main",
+      "hasPages": true,
+      "category": "学习工具",
+      "tags": [
+        "查词",
+        "翻译",
+        "单词本",
+        "TypeScript"
+      ],
+      "accent": [
+        "#10b981",
+        "#0ea5e9"
+      ],
+      "highlights": [
+        "网页划词即查即存",
+        "历史查询自动收藏",
+        "浏览时随机弹出复习"
       ],
       "featured": false
     }

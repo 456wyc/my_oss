@@ -163,6 +163,7 @@
 
   const renderTexts = () => {
     const year = new Date().getFullYear();
+    $('#scTitle').textContent = t('sc.title', { n: projects.length });
     $('#aboutName').textContent = owner.name || owner.login || t('about.title');
     $('#aboutBio').textContent = owner.bio || t('about.bioFallback');
     setText('#year', year); // 入口页才有 #year；首页年份写在 foot.rights 里

@@ -45,6 +45,13 @@
       "tags": ["快捷键", "冲突检测", "Python"],
       "accent": ["#f97316", "#ef4444"],
       "highlights": ["热键冲突检测"]
+    },
+    {
+      "repo": "word-world",
+      "category": "学习工具",
+      "tags": ["查词", "翻译", "单词本", "TypeScript"],
+      "accent": ["#10b981", "#0ea5e9"],
+      "highlights": ["网页划词即查即存", "历史查询自动收藏", "浏览时随机弹出复习"]
     }
   ]
 }
