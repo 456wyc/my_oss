@@ -8,10 +8,10 @@
 
   const tileHTML = (d) => {
     const banner = `linear-gradient(135deg, ${esc(d.accent[0])}, ${esc(d.accent[1])})`;
-    const href = encodeURI(d.file);
+    const href = `demo.html?d=${encodeURIComponent(d.id)}`;
     const tags = (d.tags || []).map((tg) => `<span class="lp-tag">${esc(tg)}</span>`).join('');
     return `<div class="lp-tile" data-text="${esc((d.title + ' ' + (d.category || '') + ' ' + (d.tags || []).join(' ')).toLowerCase())}">
-      <a class="lp-main" href="${href}" target="_blank" rel="noreferrer">
+      <a class="lp-main" href="${href}">
         <span class="lp-icon" style="background:${banner}">${esc((d.title || '?')[0])}</span>
         <span class="lp-info">
           <span class="lp-title">${esc(d.title)}</span>
@@ -19,7 +19,7 @@
           ${d.desc ? `<span class="lp-desc">${esc(d.desc)}</span>` : ''}
           ${tags ? `<span class="lp-tags">${tags}</span>` : ''}
         </span>
-        <span class="lp-go">${esc(t('demos.play'))} <i aria-hidden="true">↗</i></span>
+        <span class="lp-go">${esc(t('demos.open'))} <i aria-hidden="true">→</i></span>
       </a>
     </div>`;
   };
@@ -41,5 +41,52 @@
 
     if (searchEl) searchEl.addEventListener('input', (e) => render(e.target.value));
     render(searchEl ? searchEl.value : '');
+  };
+
+  /* ---------- demo.html 查看器：外壳 + iframe + 全屏 ---------- */
+  window.initDemoViewer = () => {
+    const id = new URLSearchParams(location.search).get('d');
+    const d = (window.DEMOS || []).find((x) => x.id === id);
+    const frame = $('#demoFrame');
+    const stage = $('#demoStage');
+    const exitBtn = $('#demoExit');
+    const missing = $('#demoMissing');
+
+    if (!d) {
+      missing.hidden = false;
+      frame.remove();
+      return;
+    }
+
+    document.title = `${d.title} · 456wyc`;
+    frame.src = encodeURI(d.file);
+    $('#demoNewTab').href = encodeURI(d.file);
+
+    const enterZen = () => {
+      document.body.classList.add('zen');
+      exitBtn.hidden = false;
+    };
+    const exitZen = () => {
+      document.body.classList.remove('zen');
+      exitBtn.hidden = true;
+    };
+
+    $('#demoFull').addEventListener('click', () => {
+      document.body.classList.contains('zen') ? exitZen() : enterZen();
+    });
+    exitBtn.addEventListener('click', exitZen);
+    const syncExitLabel = () => {
+      const s = t('demo.exitFull');
+      exitBtn.title = s;
+      exitBtn.setAttribute('aria-label', s);
+    };
+    syncExitLabel();
+    document.addEventListener('localechange', syncExitLabel);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.body.classList.contains('zen')) exitZen();
+    });
+
+    // ?full=1 直接以沉浸模式进入（隐藏导航栏）
+    if (new URLSearchParams(location.search).has('full')) enterZen();
   };
 })();
