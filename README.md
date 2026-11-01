@@ -70,4 +70,5 @@ npm run dev      # 本地预览 http://localhost:4321
   - 新增词条只需在 `assets/js/i18n.js` 的 `DICT` 中补齐 6 份
 - 卡片直接跳转「项目主页」（各项目自己的 Pages 站点）与源码
 - `apps.html`：所有 GitHub Pages 站点的入口页（Launchpad 风格）
+- `demos.html`：实验场，集中展示可在线打开的独立 Demo（如 V8 发动机 3D 演示）；清单见 `data/demos.js`
 - 详情弹窗：star/fork/issue、许可证、语言占比、一键复制 clone 命令

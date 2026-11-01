@@ -380,6 +380,9 @@
     renderTexts();
     renderShowcase();
     render();
+    if ($('#demoGrid')) {
+      window.renderDemos({ grid: '#demoGrid', search: '#demoSearch', empty: '#demoEmpty' });
+    }
   };
   window.addEventListener('localechange', renderAll);
   renderAll();

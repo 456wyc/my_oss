@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>V8 发动机 3D 分解组合演示</title>
+<style>
+:root{--bg1:#f1f1f3;--bg2:#c6c9d0;--fg:#22252b;--panel:rgba(255,255,255,.8);--bd:rgba(0,0,0,.14);--acc:#c0392b;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#2b2f38;--bg2:#0d0f13;--fg:#eceae6;--panel:rgba(26,28,34,.84);--bd:rgba(255,255,255,.16);--acc:#ec6a58;color-scheme:dark}}
+:root[data-theme="dark"]{--bg1:#2b2f38;--bg2:#0d0f13;--fg:#eceae6;--panel:rgba(26,28,34,.84);--bd:rgba(255,255,255,.16);--acc:#ec6a58;color-scheme:dark}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{height:100%;margin:0;background:radial-gradient(ellipse at 50% 35%,var(--bg1),var(--bg2));color:var(--fg);font:14px/1.45 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+#stage{position:relative;height:100%;overflow:hidden;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+.panel{position:absolute;background:var(--panel);border:1px solid var(--bd);border-radius:12px;backdrop-filter:blur(8px);padding:10px 12px}
+#title{left:12px;top:12px;max-width:min(360px,calc(100% - 24px))}
+#title b{font-size:16px}
+#info{margin-top:4px;min-height:40px;font-size:13px;opacity:.92}
+#info i{color:var(--acc);font-style:normal;font-weight:600}
+#list{right:12px;top:12px;display:flex;flex-direction:column;gap:2px;max-height:calc(100% - 140px);overflow:auto}
+#list button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 8px;border-radius:6px;font-size:13px}
+#list button:hover,#list button.on{background:var(--bd)}
+#list s{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid var(--bd)}
+#bar{left:12px;right:12px;bottom:12px;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:center}
+#bar button{cursor:pointer;border:1px solid var(--bd);background:transparent;color:var(--fg);padding:6px 14px;border-radius:8px;font:inherit}
+#bar button:hover,#bar button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#bar label{display:flex;align-items:center;gap:6px;font-size:13px}
+#bar input[type=range]{accent-color:var(--acc);width:110px}
+@media(max-width:760px){#list{display:none}}
+</style></head>
+<body>
+<div id="stage">
+ <div class="panel" id="title"><b>🏎️ V8 发动机 3D 分解组合演示</b><div id="info">拖动旋转 · 滚轮/双指缩放 · 悬停零件查看说明</div><div style="font-size:12px;opacity:.85;margin-top:4px">缸内颜色：<b style="color:#3b8fe0">进气</b> · <b style="color:#d9a400">压缩</b> · <b style="color:#e8531a">做功</b> · <b style="color:#888">排气</b>　点火顺序 1-8-4-3-6-5-7-2</div></div>
+ <div class="panel" id="list"></div>
+ <div class="panel" id="bar">
+  <button id="bAsm">组合</button><button id="bExp">分解</button><button id="bAuto">自动演示</button><button id="bRun" class="on">运转</button>
+  <label>分解度<input type="range" id="prog" min="0" max="1" step="0.001" value="0"></label>
+  <label>转速<input type="range" id="spd" min="0.1" max="3" step="0.1" value="1"></label>
+ </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const stage=document.getElementById('stage');
+const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+stage.insertBefore(renderer.domElement,stage.firstChild);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(38,1,.1,400);
+scene.add(new THREE.HemisphereLight(0xffffff,0x666677,.95));
+const d1=new THREE.DirectionalLight(0xffffff,.9);d1.position.set(6,14,9);scene.add(d1);
+const d2=new THREE.DirectionalLight(0xffeedd,.4);d2.position.set(-9,5,-7);scene.add(d2);const d3=new THREE.DirectionalLight(0xffffff,.5);d3.position.set(0,-6,10);scene.add(d3);
+
+const R=.7,L=2.4,ZT=[-2.4,-.8,.8,2.4],PH=[0,90,270,180].map(d=>d*Math.PI/180);
+const M=(c,o)=>new THREE.MeshStandardMaterial(Object.assign({color:c,metalness:.3,roughness:.42},o||{}));
+const bx=(w,h,d,m,x,y,z)=>{const s=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);s.position.set(x||0,y||0,z||0);return s};
+const cy=(r,h,m,ax,x,y,z,open)=>{const s=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,36,1,!!open),m);if(ax==='x')s.rotation.z=Math.PI/2;if(ax==='z')s.rotation.x=Math.PI/2;s.position.set(x||0,y||0,z||0);return s};
+const parts=[];
+function P(name,desc,color,rest,off,build,opt){
+  const g=new THREE.Group(),m=M(color,opt);build(g,m);
+  const p={name,desc,color,g,rest:new THREE.Vector3(...rest),off:new THREE.Vector3(...off),mats:[]};
+  g.traverse(o=>{if(o.isMesh){o.userData.part=p;if(!p.mats.includes(o.material))p.mats.push(o.material)}});
+  g.position.copy(p.rest);scene.add(g);parts.push(p);return p;
+}
+const iron=0x5b6169,alu=0xb5bbc4,steel=0xa3a9b2,brass=0xc9a03f,red=0xb8402e;
+const banks=[{n:'右列',b:Math.PI/4,z0:-.25},{n:'左列',b:-Math.PI/4,z0:.25}];
+banks.forEach(k=>{k.u=[Math.sin(k.b),Math.cos(k.b)];k.pg=[];k.rg=[]});
+const OFF=(k,d)=>[k.u[0]*d,k.u[1]*d,0];
+const tilt=(k,s)=>{const g=new THREE.Group();g.rotation.z=-k.b;g.position.set(k.u[0]*s,k.u[1]*s,0);return g};
+
+const dk=0x2a2e34,bl=0xd8dce2,mk=(c)=>M(c);
+{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d'),gr=x.createRadialGradient(64,64,4,64,64,64);gr.addColorStop(0,'rgba(0,0,0,.35)');gr.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gr;x.fillRect(0,0,128,128);
+ const sh=new THREE.Mesh(new THREE.CircleGeometry(11,48),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,depthWrite:false}));sh.rotation.x=-Math.PI/2;sh.position.y=-6.4;scene.add(sh)}
+P('进气歧管','稳压腔加8根进气支管，把空气分配到八个气缸；前端为节气门体。',steel,[0,3,0],[0,5,0],(g,m)=>{
+  g.add(cy(.75,6.2,m,'z'));g.add(cy(.5,1,mk(dk),'z',0,0,-3.6));g.add(cy(.38,.3,mk(brass),'z',0,0,-4.2));
+  for(const z of ZT)for(const s of[-1,1]){const r=bx(1.1,.32,.5,m,s*1.05,-.2,z+(s>0?-.25:.25));r.rotation.z=-s*.25;g.add(r)}});
+banks.forEach(k=>P(k.n+'气门室盖','罩住气门机构；盖上为八个独立点火线圈，右列设机油加注口。',red,[0,0,0],OFF(k,6.5),(g,m)=>{
+  const t=tilt(k,4.25);t.add(bx(1.5,.3,6.6,m));t.add(bx(1.58,.08,6.7,mk(steel),0,-.14,0));for(const sx of[-.5,.5])t.add(bx(.12,.12,6.4,m,sx,.2,0));
+  for(let i=0;i<4;i++){const z=ZT[i]+k.z0;t.add(cy(.17,.45,mk(dk),'y',0,.33,z));t.add(cy(.2,.1,mk(red),'y',0,.58,z));for(const sx of[-.62,.62])for(const sz of[-.55,.55])t.add(cy(.06,.08,mk(bl),'y',sx,.17,z+sz))}
+  if(k.b>0)t.add(cy(.26,.16,mk(steel),'y',0,.2,3));g.add(t)}));
+banks.forEach(k=>P(k.n+'气缸盖','封闭气缸顶部，含燃烧室与进排气门；外侧4个排气口。',alu,[0,0,0],OFF(k,4.6),(g,m)=>{
+  const t=tilt(k,3.85),sg=k.b>0?1:-1;t.add(bx(2,.5,7,m));
+  for(let i=0;i<4;i++){const z=ZT[i]+k.z0;t.add(bx(.5,.46,.55,mk(dk),sg*1.2,0,z));t.add(bx(.12,.64,.8,mk(steel),sg*1.46,0,z))}
+  for(let i=0;i<9;i++)for(const sx of[-.85,.85])t.add(cy(.07,.06,mk(bl),'y',sx,.27,-3.2+i*.8));g.add(t)}));
+banks.forEach(k=>P(k.n+'活塞连杆组','活塞（含活塞环、活塞销）承受爆发压力；工字梁连杆传力给曲轴。',steel,[0,0,0],OFF(k,3.4),(g,m)=>{
+  for(let i=0;i<4;i++){
+    const pg=new THREE.Group();pg.add(cy(.55,.6,m,'y'));pg.add(cy(.45,.05,mk(dk),'y',0,.31,0));for(const y of[.2,.12,.04])pg.add(cy(.57,.04,mk(brass),'y',0,y,0));pg.add(cy(.12,.9,mk(brass),'z'));g.add(pg);k.pg.push(pg);
+    const rg=new THREE.Group();rg.add(bx(L,.12,.16,m,L/2));for(const dz of[-.07,.07])rg.add(bx(L-.7,.24,.04,m,L/2,0,dz));rg.add(cy(.3,.2,m,'z'));rg.add(cy(.2,.2,m,'z',L));g.add(rg);k.rg.push(rg)}}));
+banks.forEach(k=>P(k.n+'气缸筒','透明缸筒，可直接观察缸内：进气(蓝)、压缩(黄)、点火做功(红)、排气(灰)；点火顺序1-8-4-3-6-5-7-2。',iron,[0,0,0],[0,0,0],(g,m)=>{
+  m.side=THREE.DoubleSide;m.transparent=true;m.opacity=.22;m.depthWrite=false;const mf=M(iron,{side:THREE.DoubleSide}),t=tilt(k,0);k.gas=[];k.sp=[];
+  for(let i=0;i<4;i++){const z=ZT[i]+k.z0;t.add(cy(.62,2.5,m,'y',0,2.35,z,true));t.add(cy(.78,.12,mf,'y',0,3.55,z,true));for(let j=0;j<6;j++)t.add(cy(.7,.07,mf,'y',0,1.4+j*.32,z,true));
+   const ga=new THREE.Mesh(new THREE.CylinderGeometry(.58,.58,1,24),new THREE.MeshBasicMaterial({transparent:true,opacity:.5,depthWrite:false}));ga.position.z=z;t.add(ga);k.gas.push(ga);
+   const sp=new THREE.Mesh(new THREE.SphereGeometry(.22,12,12),new THREE.MeshBasicMaterial({color:0xcfeaff,transparent:true,opacity:0}));sp.position.set(0,3.45,z);t.add(sp);k.sp.push(sp)}
+  g.add(t)}));
+const camshaft=P('凸轮轴','以曲轴一半的转速旋转，通过凸轮顶开气门。',brass,[0,1.65,0],[0,2.6,0],(g,m)=>{g.add(cy(.16,7.4,m,'z'));for(const z of ZT)g.add(bx(.7,.2,.4,m,.15,0,z));for(const z of[-3.2,-1.6,0,1.6,3.2])g.add(cy(.24,.18,mk(steel),'z',0,0,z))});
+const fly=P('飞轮','带齿圈（供起动机啮合）和离合器接合面，储存转动惯量。',0x464b53,[0,0,4.6],[0,-1.5,4],(g,m)=>{
+  g.add(cy(1.6,.4,m,'z'));for(let i=0;i<48;i++){const a=i/48*Math.PI*2,t=bx(.16,.22,.34,mk(steel),Math.cos(a)*1.78,Math.sin(a)*1.78,0);t.rotation.z=a;g.add(t)}
+  g.add(cy(.7,.14,mk(red),'z',0,0,.27));for(let i=0;i<6;i++){const a=i*Math.PI/3;g.add(cy(.07,.2,mk(bl),'z',Math.cos(a)*.5,Math.sin(a)*.5,.34))}});
+const crank=P('曲轴','四个曲拐按0°/90°/270°/180°交叉布置，每个曲拐连接左右各一根连杆；前端为皮带轮。',iron,[0,0,0],[0,-1.5,0],(g,m)=>{
+  g.add(cy(.3,1.2,m,'z',0,0,-3.8));g.add(cy(.3,1.1,m,'z',0,0,3.75));g.add(cy(.8,.4,mk(red),'z',0,0,-4.5));for(const z of[-4.35,-4.65])g.add(cy(.86,.06,mk(dk),'z',0,0,z));g.add(cy(.2,.1,mk(bl),'z',0,0,-4.75));
+  for(const z of[-3.2,-1.6,0,1.6,3.2])g.add(cy(.36,.3,mk(steel),'z',0,0,z));
+  PH.forEach((q,i)=>{const t=new THREE.Group();t.rotation.z=q;for(const dz of[-.55,.55])t.add(bx(2.2,.8,.16,m,-.05,0,ZT[i]+dz));t.add(cy(.26,1.1,mk(steel),'z',R,0,ZT[i]));g.add(t)})});
+P('油底壳','收集并储存机油；带加强筋和放油螺塞。',0x3e444b,[0,-1.7,0],[0,-3.8,0],(g,m)=>{
+  g.add(bx(4,.2,7.8,m,0,-.2,0));for(const x of[-2,2])g.add(bx(.2,1.1,7.8,m,x,.4,0));
+  for(const x of[-2.1,2.1])g.add(bx(.3,.12,8.2,m,x,.95,0));for(const z of[-4,4])g.add(bx(4.4,.12,.3,m,0,.95,z));
+  for(let z=-3;z<=3;z+=1.5)g.add(bx(4.2,.1,.14,m,0,-.35,z));g.add(cy(.18,.2,mk(bl),'y',1.2,-.4,-3))});
+
+const FO=[1,8,4,3,6,5,7,2],DG=Math.PI/180;
+function fireGas(k,i,a,s,z){const num=k.b<0?2*i+1:2*i+2,q=((((a-(135+90*FO.indexOf(num))*DG)/DG)%720)+720)%720,gm=k.gas[i].material,f=Math.max(0,1-T*4);let c,o;
+  if(q<180){c=0xff6a1a;o=.85-.5*q/180}else if(q<360){c=0x8a8f96;o=.3}else if(q<540){c=0x66b7ff;o=.35}else{c=0xffd84a;o=.25+.3*(q-540)/180}
+  gm.color.setHex(c);gm.opacity=o*f;const top=s+.3,gs=k.gas[i];gs.scale.set(1,Math.max(.01,3.55-top),1);gs.position.y=(top+3.55)/2;k.sp[i].material.opacity=(q>=700||q<14)?f:0}
+function kin(a){
+  crank.g.rotation.z=a;fly.g.rotation.z=a;camshaft.g.rotation.z=a/2;
+  banks.forEach(k=>{const[ux,uy]=k.u,nx=Math.cos(k.b),ny=-Math.sin(k.b);
+    for(let i=0;i<4;i++){const pa=a+PH[i],px=R*Math.cos(pa),py=R*Math.sin(pa),d=px*nx+py*ny,
+      s=px*ux+py*uy+Math.sqrt(L*L-d*d),z=ZT[i]+k.z0;
+      k.pg[i].position.set(s*ux,s*uy,z);k.pg[i].rotation.z=-k.b;
+      k.rg[i].position.set(px,py,z);k.rg[i].rotation.z=Math.atan2(s*uy-py,s*ux-px);fireGas(k,i,a,s,z)}});
+}
+let T=0,tgt=0,auto=false,hold=0,run=true,speed=1,ang=0,th=.75,ph=.3,dist=21,hov=null;
+const $=id=>document.getElementById(id);
+const info=$('info'),prog=$('prog'),list=$('list');
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function setEm(p,on){p.mats.forEach(m=>m.emissive&&m.emissive.setHex(on?0x6b2a1a:0))}
+function setHover(p){if(hov===p)return;if(hov)setEm(hov,0);hov=p;if(p)setEm(p,1);
+  info.innerHTML=p?'<i>'+p.name+'</i>：'+p.desc:'拖动旋转 · 滚轮/双指缩放 · 悬停零件查看说明';
+  [...list.children].forEach((b,i)=>b.classList.toggle('on',parts[i]===p))}
+parts.forEach(p=>{const b=document.createElement('button');b.innerHTML='<s style="background:#'+p.color.toString(16).padStart(6,'0')+'"></s>'+p.name;
+  b.onmouseenter=()=>setHover(p);b.onmouseleave=()=>setHover(null);b.onclick=()=>setHover(p);list.appendChild(b)});
+function mode(t){tgt=t;auto=false;hold=0;$('bAuto').classList.remove('on')}
+$('bAsm').onclick=()=>mode(0);$('bExp').onclick=()=>mode(1);
+$('bAuto').onclick=e=>{auto=!auto;hold=0;e.target.classList.toggle('on',auto);if(auto&&T===tgt)tgt=1-tgt};
+$('bRun').onclick=e=>{run=!run;e.target.classList.toggle('on',run)};
+$('spd').oninput=e=>speed=+e.target.value;
+prog.oninput=e=>{T=tgt=+e.target.value;auto=false;$('bAuto').classList.remove('on')};
+
+const dom=renderer.domElement,pts=new Map(),ray=new THREE.Raycaster();
+const pd=()=>{const a=[...pts.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
+let last=0;
+dom.addEventListener('pointerdown',e=>{dom.setPointerCapture(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);if(pts.size===2)last=pd()});
+dom.addEventListener('pointermove',e=>{
+  if(pts.has(e.pointerId)){const o=pts.get(e.pointerId);pts.set(e.pointerId,[e.clientX,e.clientY]);
+    if(pts.size===2){const n=pd();dist=clamp(dist*last/n,8,70);last=n}
+    else{th-=(e.clientX-o[0])*.008;ph=clamp(ph+(e.clientY-o[1])*.006,-.15,1.45)}}
+  else if(e.pointerType==='mouse'){const r=dom.getBoundingClientRect();
+    ray.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),cam);
+    const h=ray.intersectObjects(parts.map(p=>p.g),true)[0];setHover(h?h.object.userData.part:null)}});
+['pointerup','pointercancel'].forEach(t=>dom.addEventListener(t,e=>pts.delete(e.pointerId)));
+dom.addEventListener('wheel',e=>{e.preventDefault();dist=clamp(dist*Math.exp(e.deltaY*.001),8,70)},{passive:false});
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(stage);resize();
+
+let t0=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-t0)/1000);t0=now;
+  if(run)ang+=dt*speed*2.4;
+  if(Math.abs(T-tgt)>1e-4)T+=Math.sign(tgt-T)*Math.min(Math.abs(tgt-T),dt*.38);
+  else if(auto){hold+=dt;if(hold>1.8){tgt=1-tgt;hold=0}}
+  prog.value=T;kin(ang);
+  const n=parts.length;
+  parts.forEach((p,i)=>{const q=clamp(T*1.6-.6*i/(n-1),0,1),e=q*q*(3-2*q);p.g.position.copy(p.rest).addScaledVector(p.off,e)});
+  const E=T*T*(3-2*T),d=dist*(1+.35*E)*Math.max(1,1.25/cam.aspect);
+  cam.position.set(d*Math.sin(th)*Math.cos(ph),1.8+d*Math.sin(ph),d*Math.cos(th)*Math.cos(ph));
+  cam.lookAt(0,1.8+E*.8,0);
+  renderer.render(scene,cam);requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script></body></html>
