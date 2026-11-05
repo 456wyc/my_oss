@@ -1,6 +1,6 @@
 /* 自动生成，请勿手改；执行 npm run sync 更新 */
 window.PROJECTS = {
-  "generatedAt": "2026-11-05T04:06:49.041Z",
+  "generatedAt": "2026-11-05T11:09:19.913Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
@@ -453,22 +453,22 @@ window.PROJECTS = {
         {
           "name": "JavaScript",
           "value": 55673,
-          "percent": 42.5
+          "percent": 42
         },
         {
           "name": "Python",
-          "value": 45926,
-          "percent": 35
+          "value": 47148,
+          "percent": 35.6
         },
         {
           "name": "CSS",
-          "value": 18586,
-          "percent": 14.2
+          "value": 18694,
+          "percent": 14.1
         },
         {
           "name": "HTML",
           "value": 10890,
-          "percent": 8.3
+          "percent": 8.2
         }
       ],
       "stars": 0,
@@ -479,8 +479,8 @@ window.PROJECTS = {
       "topics": [],
       "archived": false,
       "createdAt": "2026-11-04T17:21:20Z",
-      "updatedAt": "2026-11-05T03:55:53Z",
-      "pushedAt": "2026-11-05T03:55:50Z",
+      "updatedAt": "2026-11-05T04:58:38Z",
+      "pushedAt": "2026-11-05T04:58:34Z",
       "defaultBranch": "main",
       "hasPages": true,
       "category": "金融计算",
