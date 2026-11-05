@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-04T11:09:34.927Z",
+  "generatedAt": "2026-11-05T04:06:49.041Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
     "bio": "",
     "avatarUrl": "https://avatars.githubusercontent.com/u/3086528?v=4",
     "htmlUrl": "https://github.com/456wyc",
-    "publicRepos": 31,
+    "publicRepos": 32,
     "followers": 28
   },
   "projects": [
@@ -433,6 +433,70 @@
         "网页划词即查即存",
         "历史查询自动收藏",
         "浏览时随机弹出复习"
+      ],
+      "featured": false
+    },
+    {
+      "id": "option-calculator",
+      "name": "option-calculator",
+      "fullName": "456wyc/option-calculator",
+      "description": "A股期权计算器",
+      "url": "https://github.com/456wyc/option-calculator",
+      "cloneUrl": "https://github.com/456wyc/option-calculator.git",
+      "demoUrl": "https://456wyc.github.io/option-calculator/",
+      "homepageHost": "456wyc.github.io",
+      "demoTitle": "A 股期权计算器 · 实时行情 / 持仓 / 收益",
+      "demoDescription": "A 股期权计算器：实时行情看板、持仓管理、组合收益分析与单笔策略试算。零第三方依赖，本地一键运行。",
+      "language": "JavaScript",
+      "languages": [
+        {
+          "name": "JavaScript",
+          "value": 55673,
+          "percent": 42.5
+        },
+        {
+          "name": "Python",
+          "value": 45926,
+          "percent": 35
+        },
+        {
+          "name": "CSS",
+          "value": 18586,
+          "percent": 14.2
+        },
+        {
+          "name": "HTML",
+          "value": 10890,
+          "percent": 8.3
+        }
+      ],
+      "stars": 0,
+      "forks": 0,
+      "issues": 0,
+      "watchers": 0,
+      "license": null,
+      "topics": [],
+      "archived": false,
+      "createdAt": "2026-11-04T17:21:20Z",
+      "updatedAt": "2026-11-05T03:55:53Z",
+      "pushedAt": "2026-11-05T03:55:50Z",
+      "defaultBranch": "main",
+      "hasPages": true,
+      "category": "金融计算",
+      "tags": [
+        "期权",
+        "A股",
+        "量化",
+        "计算器"
+      ],
+      "accent": [
+        "#16a34a",
+        "#0ea5e9"
+      ],
+      "highlights": [
+        "A股期权定价",
+        "盈亏可视化",
+        "策略测算"
       ],
       "featured": false
     }

@@ -52,6 +52,13 @@
       "tags": ["查词", "翻译", "单词本", "TypeScript"],
       "accent": ["#10b981", "#0ea5e9"],
       "highlights": ["网页划词即查即存", "历史查询自动收藏", "浏览时随机弹出复习"]
+    },
+    {
+      "repo": "option-calculator",
+      "category": "金融计算",
+      "tags": ["期权", "A股", "量化", "计算器"],
+      "accent": ["#16a34a", "#0ea5e9"],
+      "highlights": ["A股期权定价", "盈亏可视化", "策略测算"]
     }
   ]
 }
