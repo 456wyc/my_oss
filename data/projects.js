@@ -1,6 +1,6 @@
 /* 自动生成，请勿手改；执行 npm run sync 更新 */
 window.PROJECTS = {
-  "generatedAt": "2026-11-09T11:47:50.051Z",
+  "generatedAt": "2026-11-10T11:24:04.901Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
@@ -8,7 +8,7 @@ window.PROJECTS = {
     "avatarUrl": "https://avatars.githubusercontent.com/u/3086528?v=4",
     "htmlUrl": "https://github.com/456wyc",
     "publicRepos": 32,
-    "followers": 28
+    "followers": 26
   },
   "projects": [
     {
