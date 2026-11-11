@@ -1,13 +1,13 @@
 /* 自动生成，请勿手改；执行 npm run sync 更新 */
 window.PROJECTS = {
-  "generatedAt": "2026-11-11T11:10:43.834Z",
+  "generatedAt": "2026-11-11T22:02:18.623Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
     "bio": "",
     "avatarUrl": "https://avatars.githubusercontent.com/u/3086528?v=4",
     "htmlUrl": "https://github.com/456wyc",
-    "publicRepos": 32,
+    "publicRepos": 33,
     "followers": 26
   },
   "projects": [
@@ -175,7 +175,7 @@ window.PROJECTS = {
           "percent": 0.3
         }
       ],
-      "stars": 0,
+      "stars": 1,
       "forks": 0,
       "issues": 0,
       "watchers": 0,
@@ -183,7 +183,7 @@ window.PROJECTS = {
       "topics": [],
       "archived": false,
       "createdAt": "2026-06-28T19:33:49Z",
-      "updatedAt": "2026-10-28T08:53:16Z",
+      "updatedAt": "2026-11-11T21:55:40Z",
       "pushedAt": "2026-10-28T08:53:13Z",
       "defaultBranch": "master",
       "hasPages": true,
@@ -498,6 +498,65 @@ window.PROJECTS = {
         "A股期权定价",
         "盈亏可视化",
         "策略测算"
+      ],
+      "featured": false
+    },
+    {
+      "id": "scriptwriter-studio",
+      "name": "scriptwriter-studio",
+      "fullName": "456wyc/scriptwriter-studio",
+      "description": "剧本工坊--一个大模型赋能了的剧本编辑器",
+      "url": "https://github.com/456wyc/scriptwriter-studio",
+      "cloneUrl": "https://github.com/456wyc/scriptwriter-studio.git",
+      "demoUrl": "https://456wyc.github.io/scriptwriter-studio/",
+      "homepageHost": "456wyc.github.io",
+      "demoTitle": "剧本工坊 · 把故事，写成剧本",
+      "demoDescription": "剧本工坊是一款本地优先的开源桌面剧本编辑器：专业剧本排版、场景大纲、角色统计、Fountain 互通、PDF 导出，以及目标驱动、由系统验收的 AI 编剧智能体。",
+      "language": "JavaScript",
+      "languages": [
+        {
+          "name": "JavaScript",
+          "value": 164591,
+          "percent": 73.2
+        },
+        {
+          "name": "CSS",
+          "value": 44256,
+          "percent": 19.7
+        },
+        {
+          "name": "HTML",
+          "value": 15973,
+          "percent": 7.1
+        }
+      ],
+      "stars": 0,
+      "forks": 0,
+      "issues": 0,
+      "watchers": 0,
+      "license": "MIT",
+      "topics": [],
+      "archived": false,
+      "createdAt": "2026-11-11T20:31:30Z",
+      "updatedAt": "2026-11-11T21:53:55Z",
+      "pushedAt": "2026-11-11T21:34:19Z",
+      "defaultBranch": "main",
+      "hasPages": true,
+      "category": "AI 应用",
+      "tags": [
+        "剧本",
+        "编辑器",
+        "AI",
+        "写作"
+      ],
+      "accent": [
+        "#a855f7",
+        "#f59e0b"
+      ],
+      "highlights": [
+        "大模型辅助写作",
+        "剧本结构化编辑",
+        "网页打开即用"
       ],
       "featured": false
     }

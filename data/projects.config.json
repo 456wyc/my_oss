@@ -59,6 +59,13 @@
       "tags": ["期权", "A股", "量化", "计算器"],
       "accent": ["#16a34a", "#0ea5e9"],
       "highlights": ["A股期权定价", "盈亏可视化", "策略测算"]
+    },
+    {
+      "repo": "scriptwriter-studio",
+      "category": "AI 应用",
+      "tags": ["剧本", "编辑器", "AI", "写作"],
+      "accent": ["#a855f7", "#f59e0b"],
+      "highlights": ["大模型辅助写作", "剧本结构化编辑", "网页打开即用"]
     }
   ]
 }
