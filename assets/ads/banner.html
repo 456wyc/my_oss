@@ -8,9 +8,11 @@
 <style>
 html,body{margin:0;padding:0;background:transparent}
 body{width:300px;height:250px;overflow:hidden}
+#adph{position:absolute;left:0;top:0;width:300px;height:250px;display:flex;align-items:center;justify-content:center;color:#8a8a8a;font:12px/1.5 sans-serif;text-align:center;pointer-events:none}
 </style>
 </head>
 <body>
+<div id="adph">广告加载中…</div>
 <script>
   atOptions = {
     'key' : 'f9d3c4f1fb643f370973c39f33e8a6c8',
@@ -20,6 +22,6 @@ body{width:300px;height:250px;overflow:hidden}
     'params' : {}
   };
 </script>
-<script src="https://bauval.org/22/f9d3c4f1fb643f370973c39f33e8a6c8"></script>
+<script src="https://bauval.org/22/f9d3c4f1fb643f370973c39f33e8a6c8" onload="var p=document.getElementById('adph');if(p)p.style.display='none'" onerror="var p=document.getElementById('adph');if(p)p.textContent='广告脚本加载失败（403 / 网络 / 域名未授权）'"></script>
 </body>
 </html>
