@@ -21,5 +21,15 @@ window.DEMOS = [
     accent: ['#c0392b', '#ec6a58'],
     tags: ['Three.js', 'WebGL', '引擎', '可视化'],
     featured: true
+  },
+  {
+    id: 'neon-grid-racer',
+    file: 'demos/Neon Grid · 城市赛车.html',
+    title: 'Neon Grid · 城市赛车',
+    desc: '霓虹都市 3D 赛车：程序化生成的城市街区与 Bloom 辉光，油门/刹车、手刹漂移与氮气加速；可切换黄昏、白天、夜晚以及雨天湿滑路面，支持 4 车 AI 竞速与检查点计时两种模式。',
+    category: '3D 游戏',
+    accent: ['#3ee6ff', '#ff4fd8'],
+    tags: ['Three.js', 'WebGL', '赛车', '竞速'],
+    featured: true
   }
 ];

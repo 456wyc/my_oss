@@ -1,0 +1,154 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Neon Grid · 城市赛车</title>
+<style>
+:root{box-sizing:border-box}html,body{margin:0;height:100%;background:#0b0e14;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}canvas{display:block}
+.h{position:fixed;pointer-events:none;text-shadow:0 2px 8px #000}
+#sp{left:20px;bottom:calc(16px + env(safe-area-inset-bottom,0px));font-size:60px;font-weight:700;line-height:1}#sp small{font-size:18px;font-weight:400;opacity:.8}
+#tp{top:calc(12px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;font-size:20px}
+#ar{right:24px;bottom:calc(20px + env(safe-area-inset-bottom,0px));font-size:44px;color:#3ee6ff;text-align:center}#ar small{display:block;font-size:14px;color:#fff}
+#hp{left:20px;top:calc(12px + env(safe-area-inset-top,0px));font-size:12px;opacity:.75;max-width:260px;line-height:1.5}
+</style></head><body>
+<div class="h" id="hp">W/S 油门刹车 · A/D 转向 · 空格 手刹 · Shift 氮气<br>N 切换黄昏/白天/夜晚 · R 湿路面<br>M 切换 AI 竞速/检查点模式 · Enter 重开<br>T 雨天（雨 + 积水）</div>
+<div class="h" id="tp"></div><div class="h" id="cd" style="left:0;right:0;top:28%;text-align:center;font-size:96px;font-weight:700"></div><div class="h" id="sp"></div><div class="h" id="ar"><div id="aa">▲</div><small id="ad"></small></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script><script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script>
+const N=6,B=64;let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
+renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(62,innerWidth/innerHeight,.5,1800);scene.fog=new THREE.FogExp2(0,.002);
+// ---------- 程序化纹理 ----------
+const cv=()=>{const c=document.createElement('canvas');c.width=c.height=512;return c};
+const T=(c,s)=>{const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.anisotropy=8;if(s)t.encoding=THREE.sRGBEncoding;return t};
+function noise(g,n,a,sz=2){for(let i=0;i<n;i++){const v=rnd()*255|0;g.fillStyle=`rgba(${v},${v},${v},${a})`;g.fillRect(rnd()*512,rnd()*512,1+rnd()*sz,1+rnd()*sz)}}
+function asphalt(){const c=cv(),g=c.getContext('2d');g.fillStyle='#34363a';g.fillRect(0,0,512,512);noise(g,40000,.22);for(let i=0;i<40;i++){g.fillStyle=`rgba(20,20,22,${.15+rnd()*.2})`;g.beginPath();g.ellipse(rnd()*512,rnd()*512,10+rnd()*40,6+rnd()*20,rnd()*3,0,7);g.fill()}return c}
+function concrete(){const c=cv(),g=c.getContext('2d');g.fillStyle='#9a9892';g.fillRect(0,0,512,512);noise(g,30000,.18);g.strokeStyle='#5a5955';g.lineWidth=3;for(let i=0;i<=4;i++){g.beginPath();g.moveTo(i*128,0);g.lineTo(i*128,512);g.moveTo(0,i*128);g.lineTo(512,i*128);g.stroke()}return c}
+function facade(base){const m=cv(),e=cv(),r=cv(),g=m.getContext('2d'),q=e.getContext('2d'),p=r.getContext('2d');
+g.fillStyle=base;g.fillRect(0,0,512,512);noise(g,12000,.1,3);q.fillStyle='#000';q.fillRect(0,0,512,512);p.fillStyle='#e0e0e0';p.fillRect(0,0,512,512);
+for(let a=0;a<4;a++)for(let b=0;b<4;b++){const x=b*128+18,y=a*128+22,w=92,h=84;g.fillStyle='#1b1f27';g.fillRect(x-5,y-5,w+10,h+10);
+const gr=g.createLinearGradient(x,y,x+w,y+h);gr.addColorStop(0,'#6a88a6');gr.addColorStop(.5,'#1d2a3a');gr.addColorStop(1,'#0c121b');g.fillStyle=gr;g.fillRect(x,y,w,h);g.fillStyle='#1b1f27';g.fillRect(x+w/2-2,y,4,h);
+p.fillStyle='#303030';p.fillRect(x,y,w,h);if(rnd()<.35){q.fillStyle=['#ffd592','#ffe9bf','#9fd2ff'][rnd()*3|0];q.fillRect(x+2,y+2,w-4,h-4)}}
+return{map:T(m,1),em:T(e,1),ro:T(r)}}
+// ---------- 天空 / 环境光 ----------
+const sk={top:{value:new THREE.Color()},bot:{value:new THREE.Color()},sun:{value:new THREE.Vector3()},sc:{value:new THREE.Color()}};
+const skyM=new THREE.ShaderMaterial({uniforms:sk,side:THREE.BackSide,depthWrite:false,fog:false,vertexShader:'varying vec3 v;void main(){v=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+fragmentShader:'varying vec3 v;uniform vec3 top,bot,sun,sc;void main(){float h=clamp(v.y,0.,1.);vec3 c=mix(bot,top,pow(h,.55));float s=max(dot(v,sun),0.);c+=sc*(pow(s,600.)*8.+pow(s,8.)*.35);gl_FragColor=vec4(c,1.);}'});
+const skyG=new THREE.SphereGeometry(900,32,16),sky=new THREE.Mesh(skyG,skyM);scene.add(sky);
+const envS=new THREE.Scene();envS.add(new THREE.Mesh(skyG,skyM));const pm=new THREE.PMREMGenerator(renderer);
+const sun=new THREE.DirectionalLight(0xffffff,3);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);const sc=sun.shadow.camera;sc.left=sc.bottom=-110;sc.right=sc.top=110;sc.near=1;sc.far=500;sun.shadow.bias=-.0006;sun.shadow.normalBias=.5;scene.add(sun,sun.target);
+const hemi=new THREE.HemisphereLight(0xffffff,0x202028,.4);scene.add(hemi);
+const P=[{n:'黄昏',top:0x2b3f86,bot:0xff9a5c,sun:[.5,.18,.6],sc:0xffa060,si:2.6,sk:0xffb27a,hi:.35,fog:0xd89a78,fd:.0017,win:.5,lamp:1,head:.6},
+{n:'白天',top:0x2f6fd0,bot:0xcfe3f5,sun:[.4,.75,.35],sc:0xfff2d0,si:3.2,sk:0xfff4e0,hi:.6,fog:0xc4d8ea,fd:.0014,win:.05,lamp:0,head:0},
+{n:'夜晚',top:0x02040c,bot:0x1d1538,sun:[-.4,.5,.3],sc:0x8aa0ff,si:.35,sk:0x8aa8ff,hi:.18,fog:0x0b0d1a,fd:.0024,win:1.8,lamp:2.5,head:1.2}];
+let pi=0,cur=P[0];const bm=[],lampM=new THREE.MeshBasicMaterial({color:0xffd9a0});let lights=[];
+function apply(){cur=P[pi];sk.top.value.set(cur.top).multiplyScalar(1-.45*wx);sk.bot.value.set(cur.bot).multiplyScalar(1-.45*wx);sk.sun.value.set(...cur.sun).normalize();sk.sc.value.set(cur.sc).multiplyScalar(1-.8*wx);sun.color.set(cur.sk);sun.intensity=cur.si*(1-.6*wx);hemi.intensity=cur.hi*(1-.2*wx);hemi.color.set(cur.bot);
+scene.fog.color.set(cur.fog).multiplyScalar(1-.35*wx);scene.fog.density=cur.fd*(1+.7*wx);scene.background=new THREE.Color(cur.fog).multiplyScalar(1-.35*wx);bm.forEach(m=>m.emissiveIntensity=cur.win);lampM.color.set(0xffd9a0).multiplyScalar(.15+cur.lamp*.5);lights.forEach(l=>l.intensity=cur.head);pool.material.opacity=cur.lamp*.22;signM.color.setScalar(.3+cur.lamp*.5);wetU.value=wx;ground.material.roughness=wx?.4:.9;rain.visible=!!wx;if(bloom)bloom.strength=cur.win>1?.95:.5;
+if(scene.environment)scene.environment.dispose();scene.environment=pm.fromScene(envS).texture}
+// ---------- 城市生成 ----------
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(1500,1500),new THREE.MeshStandardMaterial({map:T(asphalt(),1),roughness:.9,metalness:0}));ground.material.map.repeat.set(230,230);ground.material.bumpMap=ground.material.map;ground.material.bumpScale=2;ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
+const sw=new THREE.InstancedMesh(new THREE.BoxGeometry(48,.16,48),new THREE.MeshStandardMaterial({map:T(concrete(),1),roughness:.85}),(2*N+1)**2);sw.material.map.repeat.set(3,3);sw.receiveShadow=true;scene.add(sw);
+['#8a8f94','#a89c8a','#6f7a85','#b8b2a6'].forEach(c=>{const f=facade(c);bm.push(new THREE.MeshStandardMaterial({map:f.map,bumpMap:f.map,bumpScale:1.5,emissiveMap:f.em,emissive:0xffffff,roughnessMap:f.ro,roughness:1,metalness:.25}))});
+function bgeo(w,h,d){const g=new THREE.BoxGeometry(w,h,d),u=g.attributes.uv;for(let f=0;f<6;f++)for(let k=0;k<4;k++){const n=f*4+k;if(f==2||f==3)u.setXY(n,u.getX(n)*.01,u.getY(n)*.01);else u.setXY(n,u.getX(n)*Math.max(1,Math.round((f<2?d:w)/16)),u.getY(n)*Math.max(1,Math.round(h/16)))}return g}
+const cols={},M4=new THREE.Matrix4(),lp=[];let si=0;
+for(let i=-N;i<=N;i++)for(let j=-N;j<=N;j++){const cx=i*B,cz=j*B,d=Math.hypot(i,j),L=[];sw.setMatrixAt(si++,M4.makeTranslation(cx,.08,cz));
+for(let a=0;a<2;a++)for(let b=0;b<2;b++){const w=13+rnd()*7,dd=13+rnd()*7,x=cx+(a?1:-1)*11.5+(rnd()-.5)*2,z=cz+(b?1:-1)*11.5+(rnd()-.5)*2,h=10+rnd()*22+Math.max(0,5-d)*rnd()*30;
+const m=new THREE.Mesh(bgeo(w,h,dd),bm[rnd()*4|0]);m.position.set(x,.16+h/2,z);m.castShadow=m.receiveShadow=true;scene.add(m);L.push({x0:x-w/2,x1:x+w/2,z0:z-dd/2,z1:z+dd/2,h})}
+cols[i+','+j]=L;for(const sx of[-1,1])for(const sz of[-1,1])lp.push([cx+sx*22.5,cz+sz*22.5])}
+const poles=new THREE.InstancedMesh(new THREE.CylinderGeometry(.12,.16,8,6),new THREE.MeshStandardMaterial({color:0x2a2c30,roughness:.5,metalness:.7}),lp.length),heads=new THREE.InstancedMesh(new THREE.BoxGeometry(.9,.2,.5),lampM,lp.length);
+lp.forEach((p,k)=>{poles.setMatrixAt(k,M4.makeTranslation(p[0],4.1,p[1]));heads.setMatrixAt(k,M4.makeTranslation(p[0]*.97,8.1,p[1]*.97))});scene.add(poles,heads);
+const dm=new THREE.InstancedMesh(new THREE.PlaneGeometry(.35,4).rotateX(-Math.PI/2),new THREE.MeshStandardMaterial({color:0xf0f0f0,roughness:.55,polygonOffset:true,polygonOffsetFactor:-2}),4000);let dn=0;
+for(let r=-N-1;r<=N;r++){const c=(r+.5)*B;for(let t=-N*B-32;t<N*B+32;t+=8){if(Math.abs((((t%B)+B)%B)-32)<11)continue;dm.setMatrixAt(dn++,M4.makeTranslation(c,.04,t));dm.setMatrixAt(dn++,M4.makeRotationY(Math.PI/2).setPosition(t,.04,c))}}dm.count=dn;dm.receiveShadow=true;scene.add(dm);
+// ---------- 车辆 ----------
+const car=new THREE.Group(),body=new THREE.MeshPhysicalMaterial({color:0xd8141f,metalness:.65,roughness:.28,clearcoat:1,clearcoatRoughness:.05}),glass=new THREE.MeshPhysicalMaterial({color:0x07101a,metalness:.9,roughness:.04}),dark=new THREE.MeshStandardMaterial({color:0x111214,roughness:.6});
+const bx=(w,h,d,m,x,y,z)=>{const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;car.add(o);return o};
+bx(1.95,.55,4.5,body,0,.62,0);bx(1.7,.5,2.1,glass,0,1.15,-.25);bx(2,.18,.5,dark,0,.38,2.2);bx(2,.18,.4,dark,0,.4,-2.25);bx(1.9,.08,.9,body,0,.92,1.35);
+bx(.5,.14,.08,new THREE.MeshBasicMaterial({color:0xfff4d0}),.65,.72,2.26);bx(.5,.14,.08,new THREE.MeshBasicMaterial({color:0xfff4d0}),-.65,.72,2.26);
+const tl=new THREE.MeshBasicMaterial({color:0x660808});bx(.55,.12,.08,tl,.65,.75,-2.26);bx(.55,.12,.08,tl,-.65,.75,-2.26);
+const wh=[];for(const[x,z]of[[.98,1.45],[-.98,1.45],[.98,-1.4],[-.98,-1.4]]){const w=new THREE.Group(),t=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.3,20).rotateZ(Math.PI/2),dark),r=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,.32,10).rotateZ(Math.PI/2),new THREE.MeshStandardMaterial({color:0xb8bcc4,metalness:1,roughness:.25}));t.castShadow=true;w.add(t,r);w.position.set(x,.38,z);car.add(w);wh.push(w)}
+for(const x of[-.65,.65]){const s=new THREE.SpotLight(0xfff0d0,0,90,.5,.5,1.2);s.position.set(x,.8,2);s.target.position.set(x*2,0,30);car.add(s,s.target);lights.push(s)}
+scene.add(car);
+// ---------- 新车模：挤出车身 + 玻璃舱 + 轮毂 ----------
+{car.children.filter(o=>o.isMesh||o.isGroup).forEach(o=>car.remove(o));wh.length=0;
+const ex=(pts,w,b,m)=>{const s=new THREE.Shape();pts.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]));const g=new THREE.ExtrudeGeometry(s,{depth:w,bevelEnabled:true,bevelThickness:b,bevelSize:b,bevelSegments:4});g.translate(0,0,-w/2);g.rotateY(-Math.PI/2);const o=new THREE.Mesh(g,m);o.castShadow=true;car.add(o)};
+ex([[-2.1,.42],[2.1,.42],[2.2,.55],[2,.7],[1.1,.8],[.5,.88],[-1.1,.88],[-2,.84],[-2.2,.68]],1.6,.1,body);ex([[-1.25,.9],[-.8,1.28],[.3,1.3],[.95,.92]],1.2,.08,glass);
+bx(1.2,.06,1.1,body,0,1.38,-.25);bx(1.7,.12,4.2,dark,0,.36,0);bx(1.9,.05,.55,dark,0,.35,2.2);bx(1.8,.1,.4,dark,0,.36,-2.15);
+bx(1.6,.05,.42,dark,0,1.04,-2.05);bx(.06,.2,.2,dark,.5,.93,-2);bx(.06,.2,.2,dark,-.5,.93,-2);bx(.16,.1,.22,body,.97,1,.55);bx(.16,.1,.22,body,-.97,1,.55);
+const hl=new THREE.MeshBasicMaterial({color:new THREE.Color(0xfff4d0).multiplyScalar(3)});for(const x of[-.62,.62])bx(.5,.09,.12,hl,x,.66,2.17).rotation.x=-.6;bx(1.5,.09,.06,tl,0,.76,-2.3);
+const rm=new THREE.MeshStandardMaterial({color:0xc9ccd4,metalness:1,roughness:.2});
+for(const[x,z]of[[.84,1.38],[-.84,1.38],[.84,-1.4],[-.84,-1.4]]){const w=new THREE.Group(),t=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.32,28).rotateZ(Math.PI/2),dark),r=new THREE.Mesh(new THREE.CylinderGeometry(.27,.27,.34,6).rotateZ(Math.PI/2),rm);t.castShadow=true;w.add(t,r);w.position.set(x,.4,z);car.add(w);wh.push(w)}}
+// ---------- 物理 ----------
+const S={x:32,z:-10,h:0,vx:0,vz:0,st:0,shake:0,score:0,time:45,over:false},K={};let cp=null,beam;
+addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='KeyN'){pi=(pi+1)%3;apply()}if(e.code=='KeyR'){ground.material.roughness=ground.material.roughness>.5?.18:.9}if(e.code=='KeyT'){wx=1-wx;apply()}if(e.code=='KeyM')setMode(1-mode);if(e.code=='Enter'&&(S.over||R.fin))setMode(mode);au();if(e.code=='Space')e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
+let ac,osc,gn;function au(){if(ac)return;try{ac=new AudioContext();osc=ac.createOscillator();gn=ac.createGain();osc.type='sawtooth';gn.gain.value=.03;osc.connect(gn).connect(ac.destination);osc.start()}catch(e){}}
+function newCp(){let x,z;do{x=((rnd()*2*N|0)-N+.5)*B;z=((rnd()*2*N|0)-N+.5)*B}while(Math.hypot(x-S.x,z-S.z)<150);cp={x,z};if(!beam){beam=new THREE.Mesh(new THREE.CylinderGeometry(5,5,80,24,1,true),new THREE.MeshBasicMaterial({color:0x3ee6ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));scene.add(beam)}beam.position.set(x,40,z)}
+function collide(px,pz,r){const ci=Math.round(px/B),cj=Math.round(pz/B);let hit=0,ox=0,oz=0;for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++)for(const b of cols[i+','+j]||[]){const qx=Math.max(b.x0,Math.min(px,b.x1)),qz=Math.max(b.z0,Math.min(pz,b.z1));let dx=px-qx,dz=pz-qz,d=Math.hypot(dx,dz);if(d<r){if(d<1e-4){dx=1;dz=0;d=1}const nx=dx/d,nz=dz/d;ox+=nx*(r-d);oz+=nz*(r-d);const vn=S.vx*nx+S.vz*nz;if(vn<0){S.vx-=vn*1.4*nx;S.vz-=vn*1.4*nz;S.shake=Math.min(1,S.shake+Math.abs(vn)/30);hit=1}}}return[ox,oz,hit]}
+function step(dt){if(S.over)return;if(mode&&R.cd>-1){R.cd-=dt;if(R.cd>0)return}const nit=K.ShiftLeft||K.ShiftRight,hb=K.Space,up=(K.KeyW||K.ArrowUp)?1:0,dn=(K.KeyS||K.ArrowDown)?1:0,lf=(K.KeyA||K.ArrowLeft?1:0)-(K.KeyD||K.ArrowRight?1:0);
+S.st+=(lf-S.st)*Math.min(1,dt*8);let fx=Math.sin(S.h),fz=Math.cos(S.h),vf=S.vx*fx+S.vz*fz;
+S.h+=S.st*Math.sign(vf||1)*Math.min(1,Math.abs(vf)/6)*dt*(2.1-Math.min(Math.abs(vf),70)/70*1.4)*(hb?1.5:1);
+fx=Math.sin(S.h);fz=Math.cos(S.h);const lx=fz,lz=-fx;vf=S.vx*fx+S.vz*fz;let vl=S.vx*lx+S.vz*lz;
+let a=0;if(up)a=vf<0?35:24*(1-Math.min(vf/75,1))+(nit?26:0);if(dn)a=vf>0?-40:-14;vf+=a*dt-vf*.05*dt-Math.sign(vf)*1.2*dt;if(hb)vf*=Math.exp(-1.2*dt);vl*=Math.exp(-(hb?1.1:6)*dt);
+S.vx=fx*vf+lx*vl;S.vz=fz*vf+lz*vl;S.x+=S.vx*dt;S.z+=S.vz*dt;
+for(const o of[1.4,-1.4]){const[ox,oz,h]=collide(S.x+fx*o,S.z+fz*o,1.15);S.x+=ox;S.z+=oz}
+const lim=N*B+40;if(Math.abs(S.x)>lim){S.x=Math.sign(S.x)*lim;S.vx*=-.3}if(Math.abs(S.z)>lim){S.z=Math.sign(S.z)*lim;S.vz*=-.3}
+S.shake*=Math.exp(-5*dt);if(!mode){S.time-=dt;if(S.time<=0){S.over=true}}else raceStep(dt);
+if(!mode&&Math.hypot(S.x-cp.x,S.z-cp.z)<9){S.score++;S.time+=9;newCp()}
+tl.color.set(dn&&vf>0?0xff2020:0x660808).multiplyScalar(dn&&vf>0?4:1);wh.forEach((w,i)=>{w.children[0].rotation.x+=vf*dt/.38;w.children[1].rotation.x=w.children[0].rotation.x;if(i<2)w.rotation.y=S.st*.45});
+if(osc){osc.frequency.value=50+Math.abs(vf)*3.2+(up?25:0)}return vf}
+// ---------- AI 竞速 ----------
+const H=160,RR=16,SL=2*H-2*RR,AL=Math.PI/2*RR,QL=SL+AL,PL=4*QL,LAPS=3,S0=50,R={cd:-2,fin:false,ps:S0,place:1};let mode=0;
+function path(s,off){s=((s%PL)+PL)%PL;const k=s/QL|0,u=s-k*QL;let x,z,th;if(u<SL){x=H;z=-(H-RR)+u;th=0}else{const f=(u-SL)/RR;x=H-RR+RR*Math.cos(f);z=H-RR+RR*Math.sin(f);th=-f}
+x+=off*Math.cos(th);z-=off*Math.sin(th);for(let i=0;i<k;i++){[x,z]=[-z,x];th-=Math.PI/2}return{x,z,th}}
+function nearS(x,z,s0){let b=s0,bd=1e9;for(let d=-24;d<=24;d+=3){const p=path(s0+d,0),q=(p.x-x)**2+(p.z-z)**2;if(q<bd){bd=q;b=s0+d}}return b}
+const AIS=[[0xf2f2f2,60,-3],[0x1f6feb,56,-1],[0xf5b301,52,1]].map(([c,v,o])=>{const g=car.clone(true),rm=[];g.traverse(x=>{if(x.isLight)rm.push(x)});rm.forEach(x=>x.parent.remove(x));
+g.traverse(x=>{if(x.material===body){x.material=body.clone();x.material.color.set(c)}if(x.material===tl)x.material=new THREE.MeshBasicMaterial({color:0xaa1010})});g.visible=false;scene.add(g);return{g,vm:v,v:0,s:S0,o,x:0,z:0,fin:false,w:g.children.filter(k=>k.isGroup)}});
+const rank=()=>1+AIS.filter(a=>a.s>R.ps).length;
+function raceStep(dt){R.ps=nearS(S.x,S.z,R.ps);
+for(const a of AIS){const u=((a.s%QL)+QL)%QL,u2=(((a.s+45)%QL)+QL)%QL;let tv=(u2>=SL||u>=SL)?26:a.vm;const gap=a.s-R.ps;tv*=gap>80?.9:gap<-60?1.06:1;a.v+=(tv-a.v)*Math.min(1,dt*(tv<a.v?1.6:.7));a.s+=a.v*dt;
+const p=path(a.s,a.o);a.x=p.x;a.z=p.z;a.g.position.set(p.x,0,p.z);a.g.rotation.y=p.th;a.w.forEach(w=>{w.children[0].rotation.x+=a.v*dt/.38;w.children[1].rotation.x=w.children[0].rotation.x});
+if(!a.fin&&a.s-S0>=LAPS*PL)a.fin=true;
+const dx=S.x-p.x,dz=S.z-p.z,d=Math.hypot(dx,dz);if(d<3.4&&d>0){const nx=dx/d,nz=dz/d;S.x+=nx*(3.4-d)*.7;S.z+=nz*(3.4-d)*.7;const vn=S.vx*nx+S.vz*nz;if(vn<0){S.vx-=vn*1.2*nx;S.vz-=vn*1.2*nz;S.shake=Math.min(1,S.shake+.15)}a.v*=.97}}
+if(!R.fin&&R.ps-S0>=LAPS*PL){R.fin=true;R.place=1+AIS.filter(a=>a.fin).length}}
+function raceHud(){const lap=Math.min(LAPS,Math.max(1,Math.floor((R.ps-S0)/PL)+1)),c=document.getElementById('cd');
+document.getElementById('tp').innerHTML=R.fin?`完赛！第 ${R.place} 名 · 按 Enter 重新开始`:`🏁 第 ${rank()} / 4 名 &nbsp; 圈 ${lap}/${LAPS} &nbsp; ${P[pi].n}`;
+c.textContent=R.cd>.5?Math.ceil(R.cd-.5):R.cd>0?'GO!':R.cd>-1?'GO!':R.fin?`第 ${R.place} 名`:'';
+const p=path(R.ps+35,0);document.getElementById('aa').style.transform=`rotate(${-(Math.atan2(p.x-S.x,p.z-S.z)-S.h)*180/Math.PI}deg)`;document.getElementById('ad').textContent=''}
+function setMode(m){mode=m;Object.assign(S,{vx:0,vz:0,score:0,time:45,over:false,st:0});R.fin=false;beam.visible=!m;AIS.forEach(a=>a.g.visible=!!m);document.getElementById('cd').textContent='';
+if(m){R.cd=3.5;R.ps=S0-7;const p=path(S0-7,3);Object.assign(S,{x:p.x,z:p.z,h:p.th});AIS.forEach((a,i)=>{a.s=S0+[14,7,0][i];a.v=0;a.fin=false;const q=path(a.s,a.o);a.g.position.set(q.x,0,q.z);a.g.rotation.y=q.th});cam.position.set(S.x,3,S.z-8)}
+else{Object.assign(S,{x:32,z:-10,h:0});newCp()}}
+// ---------- 3A 效果：霓虹招牌 / 路灯光斑 / 泛光 / 调色 ----------
+const signM=new THREE.MeshBasicMaterial({color:0xffffff}),signs=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),signM,500),sc2=new THREE.Color(),NC=[0xff2d95,0x28e1ff,0xffd23f,0x7cff6b,0xb066ff];let sn=0;
+for(const k in cols)for(const b of cols[k]){if(rnd()>.45||b.h<16||sn>=500)continue;const f=rnd()*4|0,w2=2+rnd()*3,sh=3+rnd()*6,y=6+rnd()*(b.h-10),mx=(b.x0+b.x1)/2,mz=(b.z0+b.z1)/2;let px,pz,sx,sz;
+if(f<2){px=f?b.x1+.2:b.x0-.2;pz=mz+(rnd()-.5)*(b.z1-b.z0-4);sx=.3;sz=w2}else{pz=f==2?b.z1+.2:b.z0-.2;px=mx+(rnd()-.5)*(b.x1-b.x0-4);sx=w2;sz=.3}
+signs.setMatrixAt(sn,M4.compose(new THREE.Vector3(px,y,pz),new THREE.Quaternion(),new THREE.Vector3(sx,sh,sz)));signs.setColorAt(sn++,sc2.set(NC[rnd()*5|0]).multiplyScalar(2.5))}
+signs.count=sn;scene.add(signs);
+const pool=new THREE.InstancedMesh(new THREE.PlaneGeometry(16,16).rotateX(-Math.PI/2),(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d'),r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,200,130,1)');r.addColorStop(1,'rgba(255,200,130,0)');g.fillStyle=r;g.fillRect(0,0,128,128);return new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(c),transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false})})(),lp.length);
+lp.forEach((p,k)=>pool.setMatrixAt(k,M4.makeTranslation(p[0]*1.12,.2,p[1]*1.12)));scene.add(pool);
+let composer=null,bloom=null,gradeP=null;
+try{const pr=renderer.getPixelRatio(),rt=new THREE.WebGLMultisampleRenderTarget(innerWidth*pr,innerHeight*pr,{type:THREE.HalfFloatType,format:THREE.RGBAFormat});rt.samples=4;
+composer=new THREE.EffectComposer(renderer,rt);composer.addPass(new THREE.RenderPass(scene,cam));bloom=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),.5,.6,.9);composer.addPass(bloom);
+gradeP=new THREE.ShaderPass({uniforms:{tDiffuse:{value:null},sp:{value:0}},vertexShader:'varying vec2 u;void main(){u=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+fragmentShader:'varying vec2 u;uniform sampler2D tDiffuse;uniform float sp;vec3 aces(vec3 x){return clamp((x*(2.51*x+.03))/(x*(2.43*x+.59)+.14),0.,1.);}void main(){vec2 d=u-.5;float r=dot(d,d);vec3 c=vec3(0.);for(int i=0;i<5;i++){float k=float(i)/4.*sp*.06;c.r+=texture2D(tDiffuse,u-d*(k+sp*.012)).r;c.g+=texture2D(tDiffuse,u-d*k).g;c.b+=texture2D(tDiffuse,u-d*(k-sp*.012)).b;}c/=5.;c=aces(c*1.15);c=pow(c,vec3(1./2.2));c*=1.-r*(.7+sp*.5);gl_FragColor=vec4(c,1.);}'});
+composer.addPass(gradeP);renderer.toneMapping=THREE.NoToneMapping}catch(e){composer=null;bloom=null}
+// ---------- 雨天：雨丝 + 世界空间积水 ----------
+let wx=0;const wetU={value:0};
+ground.material.onBeforeCompile=sh=>{sh.uniforms.wet=wetU;sh.vertexShader=sh.vertexShader.replace('#include <common>','#include <common>\nvarying vec2 vW;').replace('#include <begin_vertex>','#include <begin_vertex>\nvW=(modelMatrix*vec4(transformed,1.)).xz;');
+sh.fragmentShader=sh.fragmentShader.replace('#include <common>','#include <common>\nvarying vec2 vW;uniform float wet;float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}')
+.replace('#include <roughnessmap_fragment>','#include <roughnessmap_fragment>\nfloat pd=n(vW*.11)*.6+n(vW*.37)*.3+n(vW*1.3)*.1;float pu=smoothstep(.5,.58,pd)*wet;roughnessFactor=mix(roughnessFactor,.04,pu);diffuseColor.rgb*=1.-.45*pu;')};
+const RN=4000,hx=new Float32Array(RN),hy=new Float32Array(RN),hz=new Float32Array(RN),rp=new Float32Array(RN*6),rg=new THREE.BufferGeometry();
+for(let i=0;i<RN;i++){hx[i]=(Math.random()-.5)*70;hy[i]=Math.random()*40;hz[i]=(Math.random()-.5)*70}
+rg.setAttribute('position',new THREE.BufferAttribute(rp,3));const rain=new THREE.LineSegments(rg,new THREE.LineBasicMaterial({color:0xaec8ff,transparent:true,opacity:.35,depthWrite:false}));rain.frustumCulled=false;rain.visible=false;scene.add(rain);
+function rainStep(dt){const cx=cam.position.x,cz=cam.position.z;for(let i=0;i<RN;i++){hx[i]-=Math.round((hx[i]-cx)/70)*70;hz[i]-=Math.round((hz[i]-cz)/70)*70;hy[i]-=42*dt;if(hy[i]<0)hy[i]+=40;const o=i*6;rp[o]=hx[i];rp[o+1]=hy[i];rp[o+2]=hz[i];rp[o+3]=hx[i]+S.vx*.012;rp[o+4]=hy[i]+.9;rp[o+5]=hz[i]+S.vz*.012}rg.attributes.position.needsUpdate=true}
+// ---------- 主循环 ----------
+let last=performance.now(),vfs=0;newCp();apply();
+function loop(t){requestAnimationFrame(loop);const dt=Math.min(.05,(t-last)/1e3);last=t;const vf=step(dt)??vfs;vfs=vf;const sp=Math.hypot(S.vx,S.vz),fx=Math.sin(S.h),fz=Math.cos(S.h);
+car.position.set(S.x,0,S.z);car.rotation.y=S.h;car.rotation.z=-S.st*Math.min(sp/80,1)*.05;
+const dist=6.8+sp*.03,tx=S.x-fx*dist,tz=S.z-fz*dist,k=Math.min(1,dt*6);cam.position.x+=(tx-cam.position.x)*k;cam.position.z+=(tz-cam.position.z)*k;cam.position.y+=(2.9+sp*.01-cam.position.y)*k;
+cam.position.x+=(Math.random()-.5)*S.shake;cam.position.y+=(Math.random()-.5)*S.shake;cam.lookAt(S.x+fx*4,1.3,S.z+fz*4);cam.fov+=(60+sp*.35+((K.ShiftLeft)?6:0)-cam.fov)*k;cam.updateProjectionMatrix();
+sky.position.copy(cam.position);const sd=sk.sun.value;sun.position.set(S.x+sd.x*160,sd.y*160,S.z+sd.z*160);sun.target.position.set(S.x,0,S.z);
+beam.rotation.y+=dt;const dx=cp.x-S.x,dz=cp.z-S.z;
+document.getElementById('sp').innerHTML=Math.round(sp*3.6)+' <small>km/h</small>';
+document.getElementById('tp').innerHTML=S.over?`时间到！得分 ${S.score} · 按 Enter 重开`:`⏱ ${S.time.toFixed(1)}s &nbsp; ★ ${S.score} &nbsp; ${P[pi].n}`;
+document.getElementById('aa').style.transform=`rotate(${-(Math.atan2(dx,dz)-S.h)*180/Math.PI}deg)`;document.getElementById('ad').textContent=Math.round(Math.hypot(dx,dz))+' m';
+if(mode)raceHud();if(wx)rainStep(dt);if(composer){gradeP.uniforms.sp.value=Math.min(sp/80,1.2)*(K.ShiftLeft?1:.7);try{composer.render()}catch(e){composer=null;renderer.toneMapping=THREE.ACESFilmicToneMapping}}if(!composer)renderer.render(scene,cam)}
+addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth*renderer.getPixelRatio(),innerHeight*renderer.getPixelRatio());cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
+requestAnimationFrame(loop);
+</script><script src="../assets/js/stats.js"></script></body></html>
