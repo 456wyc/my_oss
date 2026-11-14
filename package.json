@@ -8,6 +8,6 @@
     "sync": "node scripts/sync.mjs",
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
-    "build": "node scripts/sync.mjs"
+    "build": "node scripts/build.mjs"
   }
 }

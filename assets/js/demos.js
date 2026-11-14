@@ -59,8 +59,26 @@
     }
 
     document.title = `${d.title} · 456wyc`;
-    frame.src = encodeURI(d.file);
-    $('#demoNewTab').href = encodeURI(d.file);
+
+    // 独立 demo 是纯 HTML，最容易被浏览器/CDN 缓存；
+    // 每次加载换一个 URL，保证看到的始终是最新改动。
+    const reloadDemo = () => {
+      const src = `${encodeURI(d.file)}?v=${Date.now()}`;
+      frame.src = src;
+      $('#demoNewTab').href = src;
+    };
+    reloadDemo();
+
+    const reloadBtn = $('#demoReload');
+    if (reloadBtn) reloadBtn.addEventListener('click', reloadDemo);
+    const syncReloadLabel = () => {
+      if (!reloadBtn) return;
+      const s = t('demo.reload');
+      reloadBtn.title = s;
+      reloadBtn.setAttribute('aria-label', s);
+    };
+    syncReloadLabel();
+    document.addEventListener('localechange', syncReloadLabel);
 
     const enterZen = () => {
       document.body.classList.add('zen');

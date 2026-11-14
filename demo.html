@@ -39,6 +39,9 @@
         <a id="demoNewTab" class="btn small ghost" href="#" target="_blank" rel="noreferrer">
           <span data-i18n="demo.newTab">新标签打开</span> <span aria-hidden="true">↗</span>
         </a>
+        <button id="demoReload" class="icon-btn" type="button" aria-label="刷新 Demo" title="刷新 Demo">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>
+        </button>
         <select id="langSelect" class="lang-select" aria-label="语言"></select>
         <button id="themeToggle" class="icon-btn" type="button" aria-label="切换主题"></button>
       </nav>
@@ -48,7 +51,7 @@
   <main>
     <div class="demo-stage" id="demoStage">
       <iframe id="demoFrame" title="demo" allow="autoplay; fullscreen; pointer-lock; gyroscope; accelerometer; xr-spatial-tracking"></iframe>
-      <p class="empty" id="demoMissing" data-i18n="demo.notFound" hidden>没有找到这个 Demo。<a href="demos.html" data-i18n="demo.backLink">返回实验场</a></p>
+      <p class="empty" id="demoMissing" hidden><span data-i18n="demo.notFound">没有找到这个 Demo，</span> <a href="demos.html" data-i18n="demo.backLink">返回实验场</a></p>
     </div>
   </main>
 
