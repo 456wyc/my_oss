@@ -27,7 +27,9 @@ button{font:inherit;font-weight:900;font-size:19px;color:#2a1a00;background:var(
 .touch #stick,.touch #fire,.touch #rl,.touch #sc{display:block}
 #stick{left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);width:120px;height:120px;border-radius:50%;background:#ffffff26;border:2px solid #ffffff66;pointer-events:none}
 #knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#ffffffaa}
-#fire{right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:92px;height:92px;border-radius:50%;background:var(--red);border:3px solid #fff;color:#fff;font-size:18px;padding:0;margin:0}
+#fire{right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:92px;height:92px;border-radius:50%;background:var(--red);border:3px solid #fff;color:#fff;font-size:18px;padding:0;margin:0;touch-action:none}
+#fire.hold{background:#ff7a42;box-shadow:0 0 0 7px #ffc83d44,0 0 20px #ff7a4277}
+#fire.hold:after{content:"";position:absolute;inset:-9px;border:2px solid #ffc83d99;border-radius:50%}
 #rl{right:calc(env(safe-area-inset-right,0px) + 132px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:14px;padding:0;margin:0}
 #sc{right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:13px;padding:0;margin:0;border:2px solid #fff6}
 #sc.on{background:var(--gold);color:#2a1a00}
@@ -49,11 +51,29 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radi
 #cross{transition:transform .12s,border-color .12s}#cross.hot{border-color:#ff3b30;mix-blend-mode:normal;transform:scale(.8)}
 #vig{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .15s;background:radial-gradient(circle at 50% 50%,transparent 32%,#000d 62%)}
 #rd{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 60px);width:104px;height:104px;border-radius:50%;pointer-events:none}
+#fs{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 172px);width:48px;height:48px;border-radius:50%;background:var(--panel);color:#fff;font-size:22px;padding:0;margin:0;border:2px solid #fff6;z-index:6}#fs.on{background:var(--gold);color:#2a1a00}
+#orient{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,16,10,.78);z-index:30;padding:18px}
+.oc{background:var(--panel);max-width:400px;width:100%;padding:26px 22px;border-radius:18px;text-align:center;line-height:1.6;box-shadow:0 12px 40px #0008}
+.oc .oi{font-size:40px;line-height:1.2;color:var(--gold)}
+.oc h2{margin:8px 0 4px;font-size:24px;letter-spacing:2px;color:var(--gold)}
+.oc p{margin:8px 0;font-size:14px;opacity:.94}
+.oc .oh{font-size:12px;opacity:.72}
+.ob button{font-size:16px;padding:10px 20px;margin:12px 5px 0}
+.ob .minor{background:#ffffff30;color:var(--ink);border:2px solid #ffffff44}
+#gyc{vertical-align:middle}
+#gyperm{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,16,10,.82);z-index:40;padding:16px}
+.gc{background:var(--panel);max-width:430px;width:100%;max-height:90vh;overflow:auto;touch-action:pan-y;padding:22px 20px;border-radius:16px;text-align:center;line-height:1.6;box-shadow:0 12px 40px #0008}
+.gc h2{margin:0 0 8px;font-size:22px;color:var(--gold);letter-spacing:1px}
+.gc p{margin:8px 0;font-size:14px}
+#gpsteps{text-align:left;background:#ffffff14;border-radius:10px;padding:6px 12px;margin:12px 0}
+#gpsteps p{margin:8px 0;font-size:13px;opacity:.92}
+.gb2 button{display:block;width:100%;font-size:16px;padding:10px 12px;margin:8px 0 0}
+.gb2 .minor{background:#ffffff30;color:var(--ink);border:2px solid #ffffff44}
 </style></head><body>
 <canvas id="c"></canvas>
 <div id="hud"><div id="time">⏱ 60</div><div id="score">得分 0</div><div id="ammo">●●●●●●</div></div>
 <div id="vig"></div><canvas id="rd" width="208" height="208"></canvas><div id="cross"></div><div id="combo"></div><div id="flash"></div>
-<div id="stick"><div id="knob"></div></div><button id="rl">换弹</button><button id="sc">瞄准镜</button><button id="wp">武器</button><button id="gb">陀螺仪</button><button id="ph">📷</button><button id="pa">⏸</button><button id="fire">开火</button>
+<div id="stick"><div id="knob"></div></div><button id="rl">换弹</button><button id="sc">瞄准镜</button><button id="wp">武器</button><button id="gb">陀螺仪</button><button id="ph">📷</button><button id="pa">⏸</button><button id="fs" title="切换全屏">⛶</button><button id="fire">射击</button>
 <div id="ov"><div id="card">
 <h1>林间猎手</h1>
 <p>在限定时间内达到目标分数即可过关，共 5 关。兔子 10 分，鹿 20 分，野猪 30 分，狐狸 40 分，棕熊 60 分。</p>
@@ -62,12 +82,32 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radi
 <button id="go">开始狩猎</button></div></div><div id="sl"><label>灵敏度 <input type="range" id="sn" min="0.3" max="1.5" step="0.05"></label><label id="gy"><input type="checkbox" id="gyc"> 陀螺仪</label><label>画质 <select id="qs"><option value="1">流畅</option><option value="2">标准</option><option value="3">高清</option></select></label></div>
 <div id="tip"></div><div id="ps"><div class="pc2"><h1>已暂停</h1><button id="prs">继续</button><button id="prt">重玩本关</button></div></div>
 <div id="pv"><div class="pc"><img id="pimg" alt="游戏照片"><p>长按图片也可以保存</p><div class="pb"><button id="psh">分享 / 保存</button><button id="pcl">继续</button></div></div></div>
+<div id="orient"><div class="oc">
+<div class="oi">▭ ↻</div><h2>横屏游玩更带感</h2>
+<p id="ot">检测到当前是竖屏。建议横置设备并开启全屏，视野更宽、操作更顺手。</p>
+<div class="ob"><button id="orGo">切换横屏 + 全屏</button><button id="orNo" class="minor">暂不，保持竖屏</button></div>
+<p id="oh" class="oh"></p>
+</div></div>
+<div id="gyperm"><div class="gc">
+<h2>开启动作与方向权限</h2>
+<p id="gps">转动手机即可瞄准，需要先允许浏览器使用运动传感器。</p>
+<div id="gpsteps">
+<p><b>iPhone / iPad · Safari</b>：点地址栏左侧「AA」→「网站设置」→「运动与方向传感器」→ 选「允许」→ 刷新本页；同时确认 系统设置 → Safari →「运动与方向访问」为开启。</p>
+<p><b>Android · Chrome</b>：点地址栏左侧锁形图标 →「权限」→ 允许「运动传感器」，再刷新本页；也可在 Chrome 设置 → 网站设置 → 运动传感器 中允许。</p>
+<p>若当前是 http 页面，浏览器不会提供传感器数据，请改用 https 打开本页。</p>
+</div>
+<div class="gb2"><button id="gpGo">立即开启（弹出系统授权）</button><button id="gpReload" class="minor">刷新页面</button><button id="gpNo" class="minor">暂不开启，用拖动瞄准</button></div>
+</div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a);
 const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 if(isTouch)document.body.classList.add('touch');
-$('help').textContent=isTouch?'左侧拖动移动，右侧拖动即可上下左右转视角，轻点屏幕或按“开火”射击，“瞄准镜”放大远处猎物，“武器”切换猎枪、弓箭、陷阱。开启“陀螺仪”后转动手机即可调整准星。左上角雷达显示猎物方位。':'WASD 移动，鼠标瞄准，左键或空格射击，右键或 Z 开镜放大，1/2/3 或滚轮切换武器，N 夜间模式，P 拍照，Esc 暂停，方向键也可转视角，R 换弹。点击开始后鼠标会被锁定，按 Esc 退出。左上角雷达显示猎物方位。';
+const ua=navigator.userAgent||'',iPadOS=navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+const isIOS=/iPad|iPhone|iPod/.test(ua)||iPadOS,isIPhone=/iPhone|iPod/.test(ua),isAndroid=/Android/i.test(ua);
+const isMobile=isTouch&&(isIOS||isAndroid||/Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile/i.test(ua));
+const isSecure=window.isSecureContext||location.protocol==='https:'||location.protocol==='file:';
+$('help').textContent=(isTouch?'左侧拖动移动，右侧拖动或按住“射击”拖动均可转视角（手不用离开按钮），轻点屏幕或“射击”开火，“瞄准镜”放大远处猎物，“武器”切换猎枪、弓箭、陷阱。开启“陀螺仪”后转动手机即可调整准星（首次开启会弹出浏览器授权窗口，点「允许」即可；建议用 HTTPS 打开）。左上角雷达显示猎物方位。':'WASD 移动，鼠标瞄准，左键或空格射击，右键或 Z 开镜放大，1/2/3 或滚轮切换武器，N 夜间模式，P 拍照，Esc 暂停，方向键也可转视角，R 换弹。点击开始后鼠标会被锁定，按 Esc 退出。左上角雷达显示猎物方位。')+(isMobile?' 建议横屏游玩，点右上角 ⛶ 可切换全屏。':'');
 let best=0;try{best=+localStorage.getItem('hunter-best')||0}catch(e){}
 if(best)$('best').textContent='最高分：'+best;
 
@@ -143,7 +183,7 @@ function shoot(){
   burst(hit.p,a.type==='gold'?0xffd54a:0xc0392b,14);pop(a.g.position,'+'+pts);snd(520,.18,'triangle',.18);try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}}
  else combo=0;
  if(ammo===0)doReload();hud()}
-function start(){score=0;tleft=LV[lv].t;wi=0;ams=W.map(w=>w.mag);ammo=ams[0];reload=0;combo=0;clearTraps();clearArrows();applyEnv();gyroInit();banner('第'+(lv+1)+'关 · '+LV[lv].n);px=0;pz=0;yaw=0;pitch=0;state='play';$('ov').style.display='none';
+function start(){score=0;tleft=LV[lv].t;wi=0;ams=W.map(w=>w.mag);ammo=ams[0];reload=0;combo=0;clearTraps();clearArrows();applyEnv();gyroInit(true);banner('第'+(lv+1)+'关 · '+LV[lv].n);px=0;pz=0;yaw=0;pitch=0;state='play';$('ov').style.display='none';
  animals.forEach(a=>scene.remove(a.g));animals.length=0;for(let i=0;i<LV[lv].c;i++)spawn();
  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
  if(usedMouse){try{cv.requestPointerLock()}catch(e){}}setZoom(false);hud()}
@@ -182,13 +222,73 @@ function look(dx,dy,k){const f=Math.pow(cam.fov/72,1.4)*sens*(crs.classList.cont
 addEventListener('keydown',e=>{const c=e.code;if(c.startsWith('Arrow')){looks[c]=1;e.preventDefault();return}keys[c]=1;if(c==='KeyR')doReload();if(c==='KeyZ')setZoom(!zoom);if(c==='Digit1')setW(0);if(c==='Digit2')setW(1);if(c==='Digit3')setW(2);if(c==='KeyQ')setW((wi+1)%3);if(c==='KeyN'){night=!night;applyEnv()}if(c==='KeyP')photo();if(c==='Escape')pause();if(c==='Space'){e.preventDefault();shoot()}});
 addEventListener('keyup',e=>{delete looks[e.code];keys[e.code]=0});
 addEventListener('contextmenu',e=>e.preventDefault());
-let gyroOn=false,gyroAtt=false,gl=0;try{gyroOn=localStorage.getItem('hunter-gy')==='1'}catch(e){}
-function gyroSet(v){gyroOn=v;$('gyc').checked=v;$('gb').classList.toggle('on',v);try{localStorage.setItem('hunter-gy',v?'1':'0')}catch(e){}}
-function gyroInit(){if(!gyroOn||gyroAtt)return;const go=()=>{gyroAtt=true;gl=0;addEventListener('devicemotion',gyroMove)};if(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission==='function'){DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted')go();else gyroSet(false)}).catch(()=>gyroSet(false))}else go()}
-function gyroMove(e){const now=performance.now(),dt=gl?Math.min((now-gl)/1000,.05):0;gl=now;if(!gyroOn||state!=='play'||!dt)return;const r=e.rotationRate;if(!r)return;
- const b=r.beta||0,g=r.gamma||0,an=(((screen.orientation?screen.orientation.angle:-(window.orientation||0))%360)+360)%360;let y=g,p=b;if(an===90){y=b;p=-g}else if(an===180){y=-g;p=-b}else if(an===270){y=-b;p=g}
- const k=dt*Math.PI/180*(sens/.8)*(cam.fov/72)*(crs.classList.contains('hot')?.7:1);yaw+=y*k;pitch=Math.max(-1.3,Math.min(1.3,pitch+p*k))}
-$('gyc').onchange=e=>{gyroSet(e.target.checked);gyroInit()};$('gb').onclick=()=>{gyroSet(!gyroOn);gyroInit()};gyroSet(gyroOn);if(!(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission==='function'))gyroInit();
+/* 陀螺仪：iOS 手势授权 / rotationRate 缺失回退 / 横屏轴映射 / 修正俯仰反向 */
+let gyroOn=false,gyroOK=false,gyroBound=false,gyroSrcOk=false,gyroTick=0,gyroWarned=false,gl=0,oPrev=null;
+try{gyroOn=localStorage.getItem('hunter-gy')==='1'}catch(e){}
+const hasDM=typeof window.DeviceMotionEvent!=='undefined',hasDO=typeof window.DeviceOrientationEvent!=='undefined';
+const permReq=(hasDM&&typeof DeviceMotionEvent.requestPermission==='function')?DeviceMotionEvent.requestPermission.bind(DeviceMotionEvent):(hasDO&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission.bind(DeviceOrientationEvent):null;
+function screenAngle(){let a;const so=screen.orientation;
+ if(so&&typeof so.angle==='number')a=so.angle;else if(typeof window.orientation==='number')a=-window.orientation;else a=innerWidth>innerHeight?90:0;
+ return ((a%360)+360)%360}
+function gyroSet(v){gyroOn=v;$('gyc').checked=v;$('gb').classList.toggle('on',v);try{localStorage.setItem('hunter-gy',v?'1':'0')}catch(e){}if(!v)gyroPanelHide()}
+function gyroHint(t){try{banner(t)}catch(e){}}
+let gyroPaused=false;
+function gyroPanel(msg,label){
+ if(state==='play'){gyroPaused=true;pause()}
+ $('gps').textContent=msg;$('gpGo').textContent=label||'立即开启（弹出系统授权）';$('gyperm').style.display='flex'}
+function gyroPanelHide(){$('gyperm').style.display='none';if(gyroPaused&&state==='paused'){gyroPaused=false;resume()}}
+function gyroBind(){
+ if(gyroBound)return;gyroBound=true;gyroTick=0;gyroWarned=false;oPrev=null;gl=0;
+ if(hasDM)addEventListener('devicemotion',gyroMotion,true);
+ if(hasDO)addEventListener('deviceorientation',gyroOrient,true);
+ setTimeout(()=>{if(gyroOn&&gyroOK&&!gyroTick&&!gyroWarned){gyroWarned=true;
+  gyroPanel(isSecure?'未收到传感器数据：请在站点权限里允许「运动传感器 / 运动与方向访问」，按下方路径设置后点「刷新页面」再试。':'当前不是 HTTPS 页面，浏览器不会提供运动传感器数据，请用 https 打开本页。','重新尝试开启')}},2400)}
+function gyroDenied(msg){gyroPanel(msg||'浏览器已拒绝授权，系统不会再次自动弹窗。请按下方路径在浏览器里允许，再点「刷新页面」并重新请求。','我已允许，重新请求权限')}
+function gyroAsk(){
+ if(!gyroOn)gyroSet(true);
+ if(!permReq){
+  const ok=()=>{gyroOK=true;gyroBind();if(!gyroTick){gyroPanel('仍未收到运动传感器数据，请按下方路径在站点权限里允许后点「刷新页面」再试。','重新检测');return}gyroPanelHide();gyroHint('传感器已响应 · 转动手机瞄准')};
+  try{const q=navigator.permissions&&navigator.permissions.query?navigator.permissions.query({name:'gyroscope'}):null;
+   Promise.resolve(q).then(s=>{if(s&&s.state==='denied')gyroPanel('浏览器显示「运动传感器」权限已被拒绝，请按下方路径在站点权限里改为允许，再刷新本页。','重新检测');else ok()},ok)}catch(e){ok()}
+  return}
+ let p;try{p=permReq()}catch(e){gyroDenied('无法发起授权请求：'+(e&&e.message||e));return}
+ $('gps').textContent='已向浏览器发起授权请求，请在弹出的系统窗口中选择「允许」…';$('gpGo').textContent='重新请求权限';
+ Promise.resolve(p).then(r=>{
+  if(r==='granted'&&gyroOn){gyroOK=true;gyroPanelHide();gyroBind();gyroHint('陀螺仪已启用 · 转动手机瞄准')}
+  else gyroDenied('授权结果：'+(r||'未允许')+'。若曾点过「不允许」，系统不会再弹窗，需按下方路径手动开启。')
+ }).catch(e=>gyroDenied('授权请求失败：'+(e&&e.message||e)+'。请确认使用 HTTPS 与 Safari/Chrome。'))}
+function gyroInit(ask){
+ if(!gyroOn)return;
+ if(gyroOK){gyroBind();return}
+ if(permReq){
+  if(ask)gyroAsk();
+  else gyroPanel(isSecure?'转动手机瞄准需要先允许浏览器使用运动传感器。点下方按钮可立即弹出系统授权窗口。':'当前不是 HTTPS 页面，浏览器通常不会授予运动传感器权限，请改用 https 打开后再开启陀螺仪。')
+ }else if(hasDM||hasDO){gyroOK=true;gyroBind();gyroHint('陀螺仪已启用 · 转动手机瞄准')}
+ else gyroPanel('当前浏览器不支持运动传感器，可以继续用触屏拖动或鼠标瞄准。','重新检测')}
+function gyroDelta(g,b){
+ const an=screenAngle();let dy=g,dp=b;
+ if(an===90){dy=b;dp=-g}else if(an===180){dy=-g;dp=-b}else if(an===270){dy=-b;dp=g}
+ const f=Math.PI/180*1.15*(sens/.8)*(cam.fov/72)*(crs.classList.contains('hot')?.7:1);
+ yaw+=dy*f;pitch=Math.max(-1.3,Math.min(1.3,pitch-dp*f))}
+function gyroMotion(e){
+ gyroTick=1;if(!gyroOn||state!=='play')return;
+ const r=e.rotationRate;if(!r)return;
+ const b=r.beta||0,g=r.gamma||0,al=r.alpha||0,now=performance.now(),dt=gl?Math.min((now-gl)/1000,.05):0;gl=now;
+ if(!dt||Math.abs(b)+Math.abs(g)+Math.abs(al)<.02)return;
+ gyroSrcOk=true;gyroDelta(g*dt,b*dt)}
+const wrap=d=>((d+540)%360)-180;
+function gyroOrient(e){
+ if(!gyroOn||state!=='play')return;
+ const b=e.beta,g=e.gamma;if(b==null||g==null)return;
+ gyroTick=1;const db=oPrev?wrap(b-oPrev.b):0,dg=oPrev?wrap(g-oPrev.g):0;oPrev={b,g};
+ if(gyroSrcOk||Math.abs(db)+Math.abs(dg)<.01)return;
+ gyroDelta(dg,db)}
+$('gyc').addEventListener('click',()=>{gyroSet($('gyc').checked);if(gyroOn)gyroAsk()});
+$('gb').onclick=()=>{gyroSet(!gyroOn);if(gyroOn)gyroAsk()};
+$('gpGo').onclick=gyroAsk;
+$('gpReload').onclick=()=>location.reload();
+$('gpNo').onclick=()=>{gyroSet(false);gyroPanelHide()};
+gyroSet(gyroOn);gyroInit(false);
 addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse')usedMouse=true;else if(e.pointerType==='touch')usedMouse=false;
  if(state!=='play'||e.target.closest('button'))return;
@@ -205,13 +305,29 @@ function pend(e){if(e.pointerType==='mouse'){if(e.button===2)setZoom(false);else
  if(c.k==='m'){jx=jy=0;kn.style.transform='';st.style.left='';st.style.bottom=''}else if(e.type==='pointerup'&&c.m<14&&performance.now()-c.t<260)shoot();
  delete ptr[e.pointerId]}
 addEventListener('pointerup',pend);addEventListener('pointercancel',pend);
-$('fire').addEventListener('pointerdown',e=>{e.preventDefault();shoot()});
+/* 射击键：点按开火，按住拖动转视角（跟手 + 指针捕获，手不用离开按钮） */
+const fireBtn=$('fire');let fp=null;
+function fireReset(){fp=null;fireBtn.classList.remove('hold');fireBtn.style.transform=''}
+function fireMove(e){
+ if(!fp||e.pointerId!==fp.id||state!=='play')return;
+ const dx=e.clientX-fp.x,dy=e.clientY-fp.y;fp.x=e.clientX;fp.y=e.clientY;
+ if(dx||dy)look(dx,dy,.0038);
+ const lim=v=>Math.max(-38,Math.min(38,v));
+ fireBtn.style.transform='translate('+lim(e.clientX-fp.sx)+'px,'+lim(e.clientY-fp.sy)+'px)'}
+function fireEnd(e){if(!fp||e.pointerId!==fp.id)return;try{fireBtn.releasePointerCapture(fp.id)}catch(x){}fireReset()}
+fireBtn.addEventListener('pointerdown',e=>{
+ e.preventDefault();if(state!=='play')return;if(fp){shoot();return}
+ fp={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};
+ fireBtn.classList.add('hold');try{fireBtn.setPointerCapture(e.pointerId)}catch(x){}
+ shoot()});
+addEventListener('pointermove',fireMove);
+addEventListener('pointerup',fireEnd);addEventListener('pointercancel',fireEnd);
 $('rl').addEventListener('pointerdown',e=>{e.preventDefault();doReload()});
 $('sc').addEventListener('pointerdown',e=>{e.preventDefault();setZoom(!zoom)});$('wp').addEventListener('pointerdown',e=>{e.preventDefault();setW((wi+1)%3)});addEventListener('wheel',e=>setW((wi+(e.deltaY>0?1:2))%3));
 function frame(dt){
  const L=looks;if(L.ArrowLeft||L.ArrowRight||L.ArrowUp||L.ArrowDown){const f=cam.fov/72*1.1*dt*sens;yaw+=((L.ArrowLeft?1:0)-(L.ArrowRight?1:0))*f;pitch=Math.max(-1.3,Math.min(1.3,pitch+((L.ArrowUp?1:0)-(L.ArrowDown?1:0))*f))}
  const tf=zoom?28:72;if(Math.abs(cam.fov-tf)>.1){cam.fov+=(tf-cam.fov)*Math.min(1,dt*12);cam.updateProjectionMatrix()}
- sky.position.set(px,0,pz);{const nw=performance.now();sun.position.set(px+sunOff[0],sunOff[1],pz+sunOff[2]);sun.target.position.set(px,0,pz);ff.position.set(px,0,pz);ff.material.opacity=.5+Math.sin(nw/300)*.4;treeObjs.forEach((t,i)=>t.rotation.z=Math.sin(nw/900+i)*.012)}if(state!=='play')return;
+ sky.position.set(px,0,pz);{const nw=performance.now();sun.position.set(px+sunOff[0],sunOff[1],pz+sunOff[2]);sun.target.position.set(px,0,pz);ff.position.set(px,0,pz);ff.material.opacity=.5+Math.sin(nw/300)*.4;treeObjs.forEach((t,i)=>t.rotation.z=Math.sin(nw/900+i)*.012)}if(state!=='play'){fireReset();return}
  if(++fr%4===0){rc.setFromCamera({x:0,y:0},cam);const h=rc.intersectObjects(animals.filter(a=>!a.dead).map(a=>a.g).concat(treeObjs),true)[0];let n=h&&h.object;while(n&&!n.userData.animal&&n.parent!==scene)n=n.parent;crs.classList.toggle('hot',!!(n&&n.userData.animal))}
  stepArrows(dt);tutStep(dt);for(let i=traps.length-1;i>=0;i--){const t=traps[i],a=animals.find(q=>!q.dead&&Math.hypot(q.g.position.x-t.x,q.g.position.z-t.z)<1.3);if(a){a.dead=true;a.t=0;score+=a.pts;burst(a.g.position,0xd9b36a,16);pop(a.g.position,'陷阱 +'+a.pts);snd(300,.25,'triangle',.18);scene.remove(t.g);traps.splice(i,1);hud()}}
  const x=rdc,c=104,R=100,sn=Math.sin(yaw),cs=Math.cos(yaw);x.clearRect(0,0,208,208);x.fillStyle='rgba(12,22,12,.55)';x.beginPath();x.arc(c,c,R,0,6.283);x.fill();x.strokeStyle='#ffffff55';x.lineWidth=2;x.beginPath();x.arc(c,c,R/2,0,6.283);x.stroke();
@@ -266,7 +382,7 @@ function stepArrows(dt){for(let i=arrows.length-1;i>=0;i--){const m=arrows[i];m.
   for(const tr of trees){if(Math.hypot(m.position.x-tr.x,m.position.z-tr.z)<tr.r+.08&&m.position.y<4){m.stuck=4;m.age=0;combo=0;hud();done=true;break}}}
  if(!done){m.lookAt(m.position.clone().add(m.v));if(m.age>6){scene.remove(m);arrows.splice(i,1);combo=0}}}}
 let tut=0,tpx=0,tpz=0,tpy=0,tpp=0,tmv=0,tlk=0,tsh=0,tsw=0,tt=0;try{if(localStorage.getItem('hunter-tut')==='1')tut=9}catch(e){}
-const TIPS=[()=>isTouch?'左半屏拖动：移动位置':'WASD 移动位置',()=>isTouch?'右半屏拖动：转动视角（也可开陀螺仪）':'移动鼠标转动视角',()=>'看左上角雷达，橙点是猎物。把准星对准猎物，'+(isTouch?'点“开火”':'按左键')+'射击',()=>isTouch?'点“武器”切换弓箭和陷阱':'按 1/2/3 切换猎枪、弓箭、陷阱',()=>'弓箭无声但会下坠，要抬高准星；陷阱能引来猎物。目标分数见左上角'];
+const TIPS=[()=>isTouch?'左半屏拖动：移动位置':'WASD 移动位置',()=>isTouch?'右半屏拖动，或按住“射击”拖动：转动视角（也可开陀螺仪）':'移动鼠标转动视角',()=>'看左上角雷达，橙点是猎物。把准星对准猎物，'+(isTouch?'点“射击”':'按左键')+'开火',()=>isTouch?'点“武器”切换弓箭和陷阱':'按 1/2/3 切换猎枪、弓箭、陷阱',()=>'弓箭无声但会下坠，要抬高准星；陷阱能引来猎物。目标分数见左上角'];
 function tutStep(dt){if(tut>=5)return;const el=$('tip');if(lv>0)tut=5;
  tmv+=Math.hypot(px-tpx,pz-tpz);tlk+=Math.abs(yaw-tpy)+Math.abs(pitch-tpp);tpx=px;tpz=pz;tpy=yaw;tpp=pitch;
  if((tut===0&&tmv>6)||(tut===1&&tlk>1.5)||(tut===2&&tsh>0)||(tut===3&&tsw>0)){tut++;tt=0}
@@ -307,4 +423,44 @@ function update(dt){
 let l_bob=0,last=performance.now();
 function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.05);last=now;update(dt);renderer.render(scene,cam);if(snapReq){snapReq=false;shot()}}
 requestAnimationFrame(loop);
+/* 移动端：横屏 / 全屏引导 */
+(function(){
+ if(!isMobile)return;
+ const box=$('orient'),ot=$('ot'),oh=$('oh'),go=$('orGo'),no=$('orNo'),fs=$('fs');
+ let skipped=false;try{skipped=sessionStorage.getItem('hunter-orient')==='skip'}catch(e){}
+ const canFS=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
+ const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+ const canLock=()=>{try{return !!(screen.orientation&&screen.orientation.lock)}catch(e){return false}};
+ let lastP=null,playWarned=false;
+ function portrait(){const a=screenAngle();if(a===90||a===270)return false;if(a===0||a===180)return true;return innerHeight>innerWidth*1.02}
+ function update(){
+  fs.classList.toggle('on',!!fsEl());
+  const p=portrait();
+  if(lastP!==null&&p&&!lastP&&!skipped&&state==='play'&&!playWarned){playWarned=true;try{banner('建议横屏游玩 · 点 ⛶ 切换全屏')}catch(e){}}
+  lastP=p;
+  const show=!skipped&&p&&state==='menu';box.style.display=show?'flex':'none';
+  if(!show)return;
+  const manual=isIOS&&(!canFS||!canLock());
+  go.textContent=go.dataset.manual?'我已横屏':manual?'我知道了，去横屏':(fsEl()?'锁定横屏':'切换横屏 + 全屏');
+  oh.textContent=manual?(window.navigator.standalone?'请关闭“竖屏锁定”，然后把手机横过来；横屏后本提示会自动消失。':isIPhone?'iPhone 无法自动旋转/全屏：请关闭控制中心里的“竖屏锁定”后横置手机；在 Safari 中“添加到主屏幕”可获得全屏体验。':'请在控制中心关闭“竖屏锁定”后横置设备；Safari 中“添加到主屏幕”可获得全屏体验。'):isAndroid?'若系统开启了竖屏锁定，请先关闭；点上方按钮可自动全屏并锁定横屏。':'若系统开启了竖屏锁定，请先关闭再旋转设备。';
+  ot.textContent=go.dataset.manual?'请关闭“竖屏锁定”并把手机横过来，横屏后提示会自动消失。':'检测到当前是竖屏。建议横置设备并开启全屏，视野更宽、操作更顺手。'
+ }
+ function lockLandscape(){if(!canLock())return;try{const p=screen.orientation.lock('landscape');if(p&&p.catch)p.catch(()=>{})}catch(e){}}
+ function reqFS(){if(!canFS||fsEl())return null;try{return (document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen).call(document.documentElement)}catch(e){return null}}
+ go.onclick=()=>{
+  if(go.dataset.manual){skipped=true;try{sessionStorage.setItem('hunter-orient','skip')}catch(e){}box.style.display='none';return}
+  if(isIOS&&(!canFS||!canLock())){go.dataset.manual='1';update();return}
+  const p=reqFS();lockLandscape();if(p&&p.then)p.then(lockLandscape,lockLandscape);
+  setTimeout(update,500)
+ };
+ no.onclick=()=>{skipped=true;try{sessionStorage.setItem('hunter-orient','skip')}catch(e){}box.style.display='none'};
+ fs.onclick=()=>{
+  if(fsEl()){try{const u=screen.orientation&&screen.orientation.unlock;if(u)u.call(screen.orientation)}catch(e){}
+   try{if(document.exitFullscreen)document.exitFullscreen();else if(document.webkitExitFullscreen)document.webkitExitFullscreen()}catch(e){}return}
+  const p=reqFS();if(p&&p.then)p.then(lockLandscape,()=>{})
+ };
+ addEventListener('resize',update);addEventListener('orientationchange',()=>setTimeout(update,350));
+ document.addEventListener('fullscreenchange',update);document.addEventListener('webkitfullscreenchange',update);
+ update()
+})();
 </script></body></html>
