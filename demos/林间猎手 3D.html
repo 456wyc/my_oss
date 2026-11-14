@@ -194,7 +194,7 @@ function end(){state='over';if(document.exitPointerLock)document.exitPointerLock
  const nb=score>best;if(nb){best=score;try{localStorage.setItem('hunter-best',best)}catch(e){}}
  const r=score>=400?'传奇猎人':score>=250?'神射手':score>=120?'老练猎手':'见习猎人';
  $('card').innerHTML='<h1>时间到</h1><p style="font-size:42px;font-weight:900;margin:0;color:var(--gold)">'+score+' 分</p><p>称号：'+r+(nb?'，新纪录！':'')+'</p><p>最高分：'+best+'</p><button id="go2">再来一局</button>';
- $('ov').style.display='flex';$('go2').onclick=start}
+ $('ov').style.display='flex';if(window.showGameOverAd)window.showGameOverAd($('card'));$('go2').onclick=start}
 $('go').onclick=start;
 
 /* 旧输入（已停用）
@@ -372,7 +372,7 @@ function clearTraps(){traps.forEach(t=>scene.remove(t.g));traps.length=0}
 function finish(){state='over';$('tip').style.display='none';if(document.exitPointerLock)document.exitPointerLock();setZoom(false);const L=LV[lv],ok=score>=L.goal,last=lv===LV.length-1;if(ok&&lv+1>unlocked&&!last){unlocked=lv+1;try{localStorage.setItem('hunter-ul',unlocked)}catch(e){}}
  const rt=score>=L.goal*1.6?'传奇猎人':score>=L.goal*1.25?'神射手':ok?'老练猎手':'见习猎人';
  $('card').innerHTML='<h1>'+(ok?(last?'全部通关':'过关'):'未达标')+'</h1><p style="font-size:42px;font-weight:900;margin:0;color:var(--gold)">'+score+' / '+L.goal+'</p><p>称号：'+rt+'</p><button id="shr" style="margin-right:8px">拍照</button><button id="go2">'+(ok?(last?'重新开始':'下一关'):'重试本关')+'</button>';
- $('ov').style.display='flex';$('shr').onclick=photo;$('go2').onclick=()=>{if(ok)lv=last?0:lv+1;start()}}
+ $('ov').style.display='flex';if(window.showGameOverAd)window.showGameOverAd($('card'));$('shr').onclick=photo;$('go2').onclick=()=>{if(ok)lv=last?0:lv+1;start()}}
 function menuLv(){const d=$('lvs');d.innerHTML='';LV.forEach((L,i)=>{const b=document.createElement('button');b.className='lb'+(i===lv?' on':'');b.disabled=i>unlocked;b.textContent=i+1;b.onclick=()=>{lv=i;menuLv();applyEnv()};d.appendChild(b)});$('lvinfo').textContent='第'+(lv+1)+'关「'+LV[lv].n+'」：'+LV[lv].t+' 秒内达到 '+LV[lv].goal+' 分'}
 $('nm').onchange=e=>{night=e.target.checked;applyEnv()};menuLv();applyEnv();
 let snapReq=false,photoBlob=null,pst='play';
@@ -483,4 +483,4 @@ requestAnimationFrame(loop);
  document.addEventListener('fullscreenchange',update);document.addEventListener('webkitfullscreenchange',update);
  update()
 })();
-</script><script src="../assets/js/stats.js"></script></body></html>
+</script><script src="../assets/js/stats.js"></script><script src="../assets/js/ads.js"></script></body></html>
