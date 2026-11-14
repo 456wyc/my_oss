@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Neon Grid · 城市赛车</title>
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><title>Neon Grid · 城市赛车</title>
 <style>
 :root{box-sizing:border-box}html,body{margin:0;height:100%;background:#0b0e14;overflow:hidden;font-family:system-ui,sans-serif;color:#fff}canvas{display:block}
 .h{position:fixed;pointer-events:none;text-shadow:0 2px 8px #000}
@@ -6,7 +6,12 @@
 #tp{top:calc(12px + env(safe-area-inset-top,0px));left:0;right:0;text-align:center;font-size:20px}
 #ar{right:24px;bottom:calc(20px + env(safe-area-inset-bottom,0px));font-size:44px;color:#3ee6ff;text-align:center}#ar small{display:block;font-size:14px;color:#fff}
 #hp{left:20px;top:calc(12px + env(safe-area-inset-top,0px));font-size:12px;opacity:.75;max-width:260px;line-height:1.5}
+#fsBtn{position:fixed;right:12px;top:calc(10px + env(safe-area-inset-top,0px));z-index:30;min-height:38px;padding:9px 13px;border-radius:10px;background:rgba(10,16,26,.72);border:1px solid rgba(62,230,255,.55);color:#eafcff;font:700 13px/1 system-ui,sans-serif;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#fsBtn.on{background:rgba(62,230,255,.28);border-color:#3ee6ff}
+#fsTip{position:fixed;left:50%;top:calc(58px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:31;width:max-content;max-width:min(88vw,420px);padding:10px 14px;border-radius:10px;background:rgba(10,16,26,.94);border:1px solid rgba(62,230,255,.5);color:#eafcff;font:500 12px/1.5 system-ui,sans-serif;text-align:center}
+#fsTip[hidden]{display:none}
 </style></head><body>
+<button type="button" id="fsBtn" aria-label="全屏">全屏</button><div id="fsTip" hidden></div>
 <div class="h" id="hp">W/S 油门刹车 · A/D 转向 · 空格 手刹 · Shift 氮气<br>N 切换黄昏/白天/夜晚 · R 湿路面<br>M 切换 AI 竞速/检查点模式 · Enter 重开<br>T 雨天（雨 + 积水）</div>
 <div class="h" id="tp"></div><div class="h" id="cd" style="left:0;right:0;top:28%;text-align:center;font-size:96px;font-weight:700"></div><div class="h" id="sp"></div><div class="h" id="ar"><div id="aa">▲</div><small id="ad"></small></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -76,12 +81,13 @@ const hl=new THREE.MeshBasicMaterial({color:new THREE.Color(0xfff4d0).multiplySc
 const rm=new THREE.MeshStandardMaterial({color:0xc9ccd4,metalness:1,roughness:.2});
 for(const[x,z]of[[.84,1.38],[-.84,1.38],[.84,-1.4],[-.84,-1.4]]){const w=new THREE.Group(),t=new THREE.Mesh(new THREE.CylinderGeometry(.4,.4,.32,28).rotateZ(Math.PI/2),dark),r=new THREE.Mesh(new THREE.CylinderGeometry(.27,.27,.34,6).rotateZ(Math.PI/2),rm);t.castShadow=true;w.add(t,r);w.position.set(x,.4,z);car.add(w);wh.push(w)}}
 // ---------- 物理 ----------
-const S={x:32,z:-10,h:0,vx:0,vz:0,st:0,shake:0,score:0,time:45,over:false},K={};let cp=null,beam;
-addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='KeyN'){pi=(pi+1)%3;apply()}if(e.code=='KeyR'){ground.material.roughness=ground.material.roughness>.5?.18:.9}if(e.code=='KeyT'){wx=1-wx;apply()}if(e.code=='KeyM')setMode(1-mode);if(e.code=='Enter'&&(S.over||R.fin))setMode(mode);au();if(e.code=='Space')e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
+const S={x:32,z:-10,h:0,vx:0,vz:0,st:0,shake:0,score:0,time:45,over:false},K={};let cp=null,beam,touchOn=false,tSteer=0;
+function keyAct(c){if(c=='KeyN'){pi=(pi+1)%3;apply()}if(c=='KeyR'){ground.material.roughness=ground.material.roughness>.5?.18:.9}if(c=='KeyT'){wx=1-wx;apply()}if(c=='KeyM')setMode(1-mode);if(c=='Enter'&&(S.over||R.fin))setMode(mode)}
+addEventListener('keydown',e=>{K[e.code]=1;keyAct(e.code);au();if(e.code=='Space')e.preventDefault()});addEventListener('keyup',e=>K[e.code]=0);
 let ac,osc,gn;function au(){if(ac)return;try{ac=new AudioContext();osc=ac.createOscillator();gn=ac.createGain();osc.type='sawtooth';gn.gain.value=.03;osc.connect(gn).connect(ac.destination);osc.start()}catch(e){}}
 function newCp(){let x,z;do{x=((rnd()*2*N|0)-N+.5)*B;z=((rnd()*2*N|0)-N+.5)*B}while(Math.hypot(x-S.x,z-S.z)<150);cp={x,z};if(!beam){beam=new THREE.Mesh(new THREE.CylinderGeometry(5,5,80,24,1,true),new THREE.MeshBasicMaterial({color:0x3ee6ff,transparent:true,opacity:.35,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));scene.add(beam)}beam.position.set(x,40,z)}
 function collide(px,pz,r){const ci=Math.round(px/B),cj=Math.round(pz/B);let hit=0,ox=0,oz=0;for(let i=ci-1;i<=ci+1;i++)for(let j=cj-1;j<=cj+1;j++)for(const b of cols[i+','+j]||[]){const qx=Math.max(b.x0,Math.min(px,b.x1)),qz=Math.max(b.z0,Math.min(pz,b.z1));let dx=px-qx,dz=pz-qz,d=Math.hypot(dx,dz);if(d<r){if(d<1e-4){dx=1;dz=0;d=1}const nx=dx/d,nz=dz/d;ox+=nx*(r-d);oz+=nz*(r-d);const vn=S.vx*nx+S.vz*nz;if(vn<0){S.vx-=vn*1.4*nx;S.vz-=vn*1.4*nz;S.shake=Math.min(1,S.shake+Math.abs(vn)/30);hit=1}}}return[ox,oz,hit]}
-function step(dt){if(S.over)return;if(mode&&R.cd>-1){R.cd-=dt;if(R.cd>0)return}const nit=K.ShiftLeft||K.ShiftRight,hb=K.Space,up=(K.KeyW||K.ArrowUp)?1:0,dn=(K.KeyS||K.ArrowDown)?1:0,lf=(K.KeyA||K.ArrowLeft?1:0)-(K.KeyD||K.ArrowRight?1:0);
+function step(dt){if(S.over)return;if(mode&&R.cd>-1){R.cd-=dt;if(R.cd>0)return}const nit=K.ShiftLeft||K.ShiftRight,hb=K.Space,up=(K.KeyW||K.ArrowUp)?1:0,dn=(K.KeyS||K.ArrowDown)?1:0,klf=(K.KeyA||K.ArrowLeft?1:0)-(K.KeyD||K.ArrowRight?1:0),lf=touchOn?(tSteer||klf):klf;
 S.st+=(lf-S.st)*Math.min(1,dt*8);let fx=Math.sin(S.h),fz=Math.cos(S.h),vf=S.vx*fx+S.vz*fz;
 S.h+=S.st*Math.sign(vf||1)*Math.min(1,Math.abs(vf)/6)*dt*(2.1-Math.min(Math.abs(vf),70)/70*1.4)*(hb?1.5:1);
 fx=Math.sin(S.h);fz=Math.cos(S.h);const lx=fz,lz=-fx;vf=S.vx*fx+S.vz*fz;let vl=S.vx*lx+S.vz*lz;
@@ -151,4 +157,195 @@ document.getElementById('aa').style.transform=`rotate(${-(Math.atan2(dx,dz)-S.h)
 if(mode)raceHud();if(wx)rainStep(dt);if(composer){gradeP.uniforms.sp.value=Math.min(sp/80,1.2)*(K.ShiftLeft?1:.7);try{composer.render()}catch(e){composer=null;renderer.toneMapping=THREE.ACESFilmicToneMapping}}if(!composer)renderer.render(scene,cam)}
 addEventListener('resize',()=>{renderer.setSize(innerWidth,innerHeight);if(composer)composer.setSize(innerWidth*renderer.getPixelRatio(),innerHeight*renderer.getPixelRatio());cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
 requestAnimationFrame(loop);
+/* ---------- 设备 → 操作模式：自动检测 + 手动切换 ---------- */
+(function(){
+  const KEYHELP='W/S 油门刹车 · A/D 转向 · 空格 手刹 · Shift 氮气<br>N 切换黄昏/白天/夜晚 · R 湿路面<br>M 切换 AI 竞速/检查点模式 · Enter 重开<br>T 雨天（雨 + 积水）';
+  const LABEL={desktop:'⌨ 键盘 · 电脑',phone:'👆 触屏 · 手机',tablet:'👆 触屏 · 平板'};
+  const ORDER=['desktop','phone','tablet'];
+  const ua=navigator.userAgent||'';
+  const coarse=!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+  const mt=navigator.maxTouchPoints||0;
+  const par=new URLSearchParams(location.search),c=par.get('ctrl'),t=par.get('touch');
+  function touchDevice(){
+    if(/iPad|Tablet|Silk|Kindle/i.test(ua)||(/Android/i.test(ua)&&!/Mobile/i.test(ua)))return 'tablet';
+    return Math.min(innerWidth,innerHeight)>=600?'tablet':'phone';
+  }
+  function autoDevice(){
+    if(/Android|iPhone|iPod|Mobile|Windows Phone|iPad|Tablet|Silk|Kindle/i.test(ua))return touchDevice();
+    if(coarse&&mt>0)return touchDevice();
+    return 'desktop';
+  }
+  let urlForced=null;
+  if(c==='keyboard')urlForced='desktop';
+  else if(c==='phone'||c==='tablet')urlForced=c;
+  else if(t==='0')urlForced='desktop';
+  else if(t==='1')urlForced=touchDevice();
+  let override=null,cur={device:'desktop',mode:'keyboard'};
+
+  const css=document.createElement('style');css.textContent=`
+.touch canvas{touch-action:none}
+.touch #hp{display:block;top:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 152px);left:12px;right:12px;max-width:none;font-size:11px;opacity:.6}
+.touch #tp{top:calc(env(safe-area-inset-top,0px) + 6px);font-size:13px}
+.touch #sp{left:14px;top:calc(env(safe-area-inset-top,0px) + 30px);bottom:auto;font-size:30px}
+.touch #sp small{font-size:11px}
+.touch #ar{right:14px;top:calc(env(safe-area-inset-top,0px) + 56px);bottom:auto;font-size:26px}
+.touch #ar small{font-size:10px}
+.touch #cd{font-size:64px!important}
+.touch .tt,.touch .tb,.touch .tsw,.touch .tv{background:rgba(10,16,26,.62);border:1px solid rgba(62,230,255,.5);color:#eafcff;font:700 12px/1 system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.touch .tt{padding:6px 8px;border-radius:8px;font-size:11px;touch-action:manipulation}
+.touch .tts{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 76px);display:flex;justify-content:center;gap:5px;z-index:12}
+.touch .tpad{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;justify-content:space-between;align-items:flex-end;padding:0 12px;z-index:12;pointer-events:none}
+.touch .tsw{width:min(40vw,180px);height:76px;border-radius:16px;position:relative;box-sizing:border-box;touch-action:none;pointer-events:auto;display:flex;align-items:center;justify-content:space-between;padding:0 10px;color:rgba(234,252,255,.5)}
+.touch .tsw.on,.touch .tv.on{background:rgba(62,230,255,.2);border-color:#3ee6ff}
+.touch .tsw i{position:absolute;top:50%;left:50%;width:34px;height:52px;margin:-26px 0 0 -17px;box-sizing:border-box;border-radius:12px;background:rgba(62,230,255,.32);border:2px solid #3ee6ff;pointer-events:none}
+.touch .tright{display:flex;align-items:flex-end;gap:min(2vw,8px);pointer-events:auto}
+.touch .tvb{display:grid;grid-template-rows:repeat(2,min(13vw,48px));gap:min(2vw,8px);align-items:end}
+.touch .tb{width:min(15vw,56px);height:min(13vw,48px);padding:0;border-radius:14px;touch-action:none;font-size:11px}
+.touch .tb.on{background:rgba(62,230,255,.42);border-color:#3ee6ff}
+.touch .tv{width:min(20vw,76px);height:132px;border-radius:18px;position:relative;box-sizing:border-box;touch-action:none;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:8px 0;color:rgba(234,252,255,.6);font-size:10px}
+.touch .tv i{position:absolute;top:50%;left:6px;right:6px;height:34px;margin-top:-17px;box-sizing:border-box;border-radius:12px;background:rgba(62,230,255,.32);border:2px solid #3ee6ff;pointer-events:none}
+.touch .tv.gas i{background:rgba(62,230,255,.55);border-color:#8af5ff}
+.touch .tv.brk i{background:rgba(255,110,110,.5);border-color:#ff9a9a}
+#hp .cbtn{pointer-events:auto;display:inline-block;margin:0 0 4px;padding:4px 9px;border-radius:8px;background:rgba(10,16,26,.72);border:1px solid rgba(62,230,255,.55);color:#eafcff;font:700 11px/1.3 system-ui,sans-serif;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body[data-ctrl="keyboard"] .tts,body[data-ctrl="keyboard"] .tpad{display:none}
+body[data-device="tablet"] .tsw{width:min(38vw,260px);height:92px}
+body[data-device="tablet"] .tv{width:96px;height:168px;font-size:12px}
+body[data-device="tablet"] .tv i{height:42px;margin-top:-21px}
+body[data-device="tablet"] .tb{width:76px;height:58px;font-size:13px}
+body[data-device="tablet"] .tvb{grid-template-rows:repeat(2,58px);gap:10px}
+body[data-device="tablet"] .tt{font-size:13px;padding:8px 12px}
+body[data-device="tablet"] .tts{gap:8px}
+body[data-device="tablet"] #hp{bottom:calc(env(safe-area-inset-bottom,0px) + 196px)}
+@media (orientation:landscape) and (max-height:520px){
+body[data-device="phone"] .tsw{height:58px}
+body[data-device="phone"] .tv{height:92px;font-size:9px}
+body[data-device="phone"] .tv i{height:26px;margin-top:-13px}
+body[data-device="phone"] .tb{height:40px;font-size:10px}
+body[data-device="phone"] .tvb{grid-template-rows:repeat(2,40px);gap:6px}
+body[data-device="phone"] .tt{padding:4px 6px;font-size:10px}
+body[data-device="phone"] .tts{top:calc(env(safe-area-inset-top,0px) + 58px)}
+body[data-device="phone"] #hp{bottom:calc(env(safe-area-inset-bottom,0px) + 108px);font-size:10px}
+}
+`;
+  document.head.appendChild(css);
+  const hp=document.getElementById('hp');
+  const wrap=document.createElement('div');
+  wrap.innerHTML='<div class="tts"><button class="tt" data-t="KeyN">时段</button><button class="tt" data-t="KeyT">雨天</button><button class="tt" data-t="KeyR">湿路</button><button class="tt" data-t="KeyM">模式</button><button class="tt" data-t="Enter">重开</button></div>'+
+    '<div class="tpad"><div class="tsw" id="tsw"><span>◀</span><i id="tkn"></i><span>▶</span></div>'+
+    '<div class="tright"><div class="tvb"><button class="tb" data-k="ShiftLeft">氮气</button><button class="tb" data-k="Space">漂移</button></div>'+
+    '<div class="tv" id="tv"><span>▲ 油门</span><i id="tvn"></i><span>刹车 ▼</span></div></div></div>';
+  document.body.appendChild(wrap);
+
+  const sw=document.getElementById('tsw'),kn=document.getElementById('tkn');
+  const tv=document.getElementById('tv'),vn=document.getElementById('tvn');
+
+  function renderHelp(){
+    hp.innerHTML='<button type="button" class="cbtn" id="ctrlBtn">'+LABEL[cur.device]+' ⇄</button>'+
+      (cur.mode==='keyboard'?'<br>'+KEYHELP:' · 左下左右滑转向 · 右下上滑油门 / 下滑刹车 · 氮气 / 漂移 / 顶部按钮');
+    document.getElementById('ctrlBtn').addEventListener('pointerdown',e=>{
+      e.preventDefault();au();
+      override=ORDER[(ORDER.indexOf(cur.device)+1)%ORDER.length];apply();
+    });
+  }
+  function apply(){
+    const d=override||urlForced||autoDevice();
+    cur={device:d,mode:d==='desktop'?'keyboard':'touch'};
+    document.body.dataset.device=d;
+    document.body.dataset.ctrl=cur.mode;
+    document.body.classList.toggle('touch',cur.mode==='touch');
+    touchOn=cur.mode==='touch';
+    if(cur.mode==='keyboard'){
+      Object.keys(K).forEach(k=>K[k]=0);
+      tSteer=0;
+      kn.style.transform='translateX(0)';sw.classList.remove('on');
+      vn.style.transform='translateY(0)';tv.classList.remove('on','gas','brk');
+    }
+    renderHelp();
+  }
+
+  document.querySelectorAll('.tt').forEach(b=>b.addEventListener('pointerdown',e=>{
+    e.preventDefault();au();
+    if(b.dataset.t==='Enter')setMode(mode);else keyAct(b.dataset.t);
+  }));
+  document.querySelectorAll('.tb').forEach(b=>{
+    const k=b.dataset.k;
+    const down=e=>{e.preventDefault();try{b.setPointerCapture(e.pointerId)}catch(_){}K[k]=1;au();b.classList.add('on')};
+    const up=e=>{e.preventDefault();K[k]=0;b.classList.remove('on')};
+    b.addEventListener('pointerdown',down);
+    b.addEventListener('pointerup',up);
+    b.addEventListener('pointercancel',up);
+    b.addEventListener('lostpointercapture',up);
+  });
+
+  /* 横向转向：相机屏幕右方是世界 -x，lf>0 让车头转向世界 +x（屏幕左），
+     所以屏幕位移取负才是物理 lf —— 向右滑 → 车右转。 */
+  let sid=null,rect=null;
+  const setH=x=>{
+    if(!rect)return;
+    const v=Math.max(-1,Math.min(1,(x-(rect.left+rect.width/2))/(rect.width/2)));
+    tSteer=-v;
+    kn.style.transform='translateX('+(v*(rect.width/2-19))+'px)';
+  };
+  const endH=e=>{if(sid!==null&&e.pointerId!==sid)return;sid=null;tSteer=0;kn.style.transform='translateX(0)';sw.classList.remove('on')};
+  sw.addEventListener('pointerdown',e=>{e.preventDefault();try{sw.setPointerCapture(e.pointerId)}catch(_){}sid=e.pointerId;rect=sw.getBoundingClientRect();sw.classList.add('on');setH(e.clientX);au()});
+  sw.addEventListener('pointermove',e=>{if(e.pointerId===sid)setH(e.clientX)});
+  sw.addEventListener('pointerup',endH);sw.addEventListener('pointercancel',endH);sw.addEventListener('lostpointercapture',endH);
+
+  /* 纵向油门/刹车：向上滑给油，向下滑刹车/倒车，松手回中同时松开 */
+  let vid=null,vrect=null;
+  const setV=y=>{
+    if(!vrect)return;
+    const v=Math.max(-1,Math.min(1,((vrect.top+vrect.height/2)-y)/(vrect.height/2)));
+    const gas=v>0.12,brk=v<-0.12;
+    K.KeyW=gas?1:0;K.KeyS=brk?1:0;
+    tv.classList.toggle('gas',gas);tv.classList.toggle('brk',brk);
+    vn.style.transform='translateY('+(-v*(vrect.height/2-19))+'px)';
+  };
+  const endV=e=>{if(vid!==null&&e.pointerId!==vid)return;vid=null;K.KeyW=0;K.KeyS=0;tv.classList.remove('on','gas','brk');vn.style.transform='translateY(0)'};
+  tv.addEventListener('pointerdown',e=>{e.preventDefault();try{tv.setPointerCapture(e.pointerId)}catch(_){}vid=e.pointerId;vrect=tv.getBoundingClientRect();tv.classList.add('on');setV(e.clientY);au()});
+  tv.addEventListener('pointermove',e=>{if(e.pointerId===vid)setV(e.clientY)});
+  tv.addEventListener('pointerup',endV);tv.addEventListener('pointercancel',endV);tv.addEventListener('lostpointercapture',endV);
+
+  apply();
+  /* 键盘设备上出现真实触摸输入时，自动切到对应触屏模式 */
+  document.addEventListener('pointerdown',e=>{
+    if(override||urlForced||e.defaultPrevented)return;
+    if(e.pointerType==='touch'&&cur.mode==='keyboard'){override=touchDevice();apply()}
+  });
+})();
+/* ---------- 全屏：手机也能开启浏览器原生全屏 ---------- */
+(function(){
+  const b=document.getElementById('fsBtn'),tip=document.getElementById('fsTip'),el=document.documentElement;
+  const req=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;
+  const cur=()=>document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement;
+  let timer=null;
+  function showTip(msg){
+    tip.textContent=msg;tip.hidden=false;
+    clearTimeout(timer);timer=setTimeout(()=>{tip.hidden=true},4500);
+  }
+  function sync(){
+    const on=!!cur();
+    b.textContent=on?'退出全屏':'全屏';
+    b.setAttribute('aria-label',b.textContent);
+    b.classList.toggle('on',on);
+  }
+  function exitFs(){
+    const fn=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;
+    if(!fn)return Promise.resolve();
+    try{return fn.call(document)||Promise.resolve()}catch(e){return Promise.resolve()}
+  }
+  if(!req){
+    b.addEventListener('click',()=>showTip('当前浏览器不支持网页全屏。iPhone 请在 Safari 点「分享 → 添加到主屏幕」，再从桌面图标打开即可全屏运行。'));
+    return;
+  }
+  b.addEventListener('click',()=>{
+    let p;
+    try{p=cur()?exitFs():req.call(el)}catch(e){p=Promise.reject(e)}
+    if(p&&p.catch)p.catch(()=>showTip('浏览器拒绝了全屏请求。请改用系统浏览器直接打开本页（不要用 App 内嵌浏览器）；iPhone 可「添加到主屏幕」后全屏运行。'));
+  });
+  document.addEventListener('fullscreenchange',sync);
+  document.addEventListener('webkitfullscreenchange',sync);
+  document.addEventListener('MSFullscreenChange',sync);
+  sync();
+})();
 </script><script src="../assets/js/stats.js"></script></body></html>
