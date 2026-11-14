@@ -61,6 +61,9 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radi
 .ob button{font-size:16px;padding:10px 20px;margin:12px 5px 0}
 .ob .minor{background:#ffffff30;color:var(--ink);border:2px solid #ffffff44}
 #gyc{vertical-align:middle}
+#gflip{display:none;vertical-align:middle;font-size:12px;font-weight:700;padding:3px 9px;margin:0 0 0 6px;background:#ffffff30;color:var(--ink);border:1px solid #ffffff55;border-radius:8px}
+.touch #gflip{display:inline-block}
+#gflip.on{background:var(--gold);color:#2a1a00}
 #gyperm{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,16,10,.82);z-index:40;padding:16px}
 .gc{background:var(--panel);max-width:430px;width:100%;max-height:90vh;overflow:auto;touch-action:pan-y;padding:22px 20px;border-radius:16px;text-align:center;line-height:1.6;box-shadow:0 12px 40px #0008}
 .gc h2{margin:0 0 8px;font-size:22px;color:var(--gold);letter-spacing:1px}
@@ -79,7 +82,7 @@ body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radi
 <p>在限定时间内达到目标分数即可过关，共 5 关。兔子 10 分，鹿 20 分，野猪 30 分，狐狸 40 分，棕熊 60 分。</p>
 <p>1 猎枪（声响大，会惊走周围猎物）· 2 弓箭（几乎无声，箭矢会下坠，要抬高准星）· 3 陷阱（会吸引猎物，踩中即捕获）。金色神鹿值 80 分。</p>
 <div id="lvs"></div><p id="lvinfo"></p><label><input type="checkbox" id="nm"> 夜间模式（全部关卡）</label><p id="help"></p><p id="best"></p>
-<button id="go">开始狩猎</button></div></div><div id="sl"><label>灵敏度 <input type="range" id="sn" min="0.3" max="1.5" step="0.05"></label><label id="gy"><input type="checkbox" id="gyc"> 陀螺仪</label><label>画质 <select id="qs"><option value="1">流畅</option><option value="2">标准</option><option value="3">高清</option></select></label></div>
+<button id="go">开始狩猎</button></div></div><div id="sl"><label>灵敏度 <input type="range" id="sn" min="0.3" max="1.5" step="0.05"></label><label id="gy"><input type="checkbox" id="gyc"> 陀螺仪</label><button id="gflip" title="上下/左右反了？点此交换陀螺仪轴向">⇄轴向</button><label>画质 <select id="qs"><option value="1">流畅</option><option value="2">标准</option><option value="3">高清</option></select></label></div>
 <div id="tip"></div><div id="ps"><div class="pc2"><h1>已暂停</h1><button id="prs">继续</button><button id="prt">重玩本关</button></div></div>
 <div id="pv"><div class="pc"><img id="pimg" alt="游戏照片"><p>长按图片也可以保存</p><div class="pb"><button id="psh">分享 / 保存</button><button id="pcl">继续</button></div></div></div>
 <div id="orient"><div class="oc">
@@ -107,7 +110,7 @@ const ua=navigator.userAgent||'',iPadOS=navigator.platform==='MacIntel'&&navigat
 const isIOS=/iPad|iPhone|iPod/.test(ua)||iPadOS,isIPhone=/iPhone|iPod/.test(ua),isAndroid=/Android/i.test(ua);
 const isMobile=isTouch&&(isIOS||isAndroid||/Mobile|Silk|Kindle|BlackBerry|Opera Mini|IEMobile/i.test(ua));
 const isSecure=window.isSecureContext||location.protocol==='https:'||location.protocol==='file:';
-$('help').textContent=(isTouch?'左侧拖动移动，右侧拖动或按住“射击”拖动均可转视角（手不用离开按钮），轻点屏幕或“射击”开火，“瞄准镜”放大远处猎物，“武器”切换猎枪、弓箭、陷阱。开启“陀螺仪”后转动手机即可调整准星（首次开启会弹出浏览器授权窗口，点「允许」即可；建议用 HTTPS 打开）。左上角雷达显示猎物方位。':'WASD 移动，鼠标瞄准，左键或空格射击，右键或 Z 开镜放大，1/2/3 或滚轮切换武器，N 夜间模式，P 拍照，Esc 暂停，方向键也可转视角，R 换弹。点击开始后鼠标会被锁定，按 Esc 退出。左上角雷达显示猎物方位。')+(isMobile?' 建议横屏游玩，点右上角 ⛶ 可切换全屏。':'');
+$('help').textContent=(isTouch?'左侧拖动移动，右侧拖动或按住“射击”拖动均可转视角（手不用离开按钮），轻点屏幕或“射击”开火，“瞄准镜”放大远处猎物，“武器”切换猎枪、弓箭、陷阱。开启“陀螺仪”后转动手机即可调整准星（首次开启会弹出浏览器授权窗口，点「允许」即可；建议用 HTTPS 打开；方向反了点「⇄轴向」）。左上角雷达显示猎物方位。':'WASD 移动，鼠标瞄准，左键或空格射击，右键或 Z 开镜放大，1/2/3 或滚轮切换武器，N 夜间模式，P 拍照，Esc 暂停，方向键也可转视角，R 换弹。点击开始后鼠标会被锁定，按 Esc 退出。左上角雷达显示猎物方位。')+(isMobile?' 建议横屏游玩，点右上角 ⛶ 可切换全屏。':'');
 let best=0;try{best=+localStorage.getItem('hunter-best')||0}catch(e){}
 if(best)$('best').textContent='最高分：'+best;
 
@@ -222,9 +225,9 @@ function look(dx,dy,k){const f=Math.pow(cam.fov/72,1.4)*sens*(crs.classList.cont
 addEventListener('keydown',e=>{const c=e.code;if(c.startsWith('Arrow')){looks[c]=1;e.preventDefault();return}keys[c]=1;if(c==='KeyR')doReload();if(c==='KeyZ')setZoom(!zoom);if(c==='Digit1')setW(0);if(c==='Digit2')setW(1);if(c==='Digit3')setW(2);if(c==='KeyQ')setW((wi+1)%3);if(c==='KeyN'){night=!night;applyEnv()}if(c==='KeyP')photo();if(c==='Escape')pause();if(c==='Space'){e.preventDefault();shoot()}});
 addEventListener('keyup',e=>{delete looks[e.code];keys[e.code]=0});
 addEventListener('contextmenu',e=>e.preventDefault());
-/* 陀螺仪：iOS 手势授权 / rotationRate 缺失回退 / 横屏轴映射 / 修正俯仰反向 */
-let gyroOn=false,gyroOK=false,gyroBound=false,gyroSrcOk=false,gyroTick=0,gyroWarned=false,gl=0,oPrev=null;
-try{gyroOn=localStorage.getItem('hunter-gy')==='1'}catch(e){}
+/* 陀螺仪：用重力/姿态判定持握方向做轴映射，不再依赖 screen.orientation */
+let gyroOn=false,gyroOK=false,gyroBound=false,gyroSrcOk=false,gyroTick=0,gyroWarned=false,gl=0,oPrev=null,oMat=null,ux=0,uy=1,gyroSwap=false;
+try{gyroOn=localStorage.getItem('hunter-gy')==='1';gyroSwap=localStorage.getItem('hunter-gswap')==='1'}catch(e){}
 const hasDM=typeof window.DeviceMotionEvent!=='undefined',hasDO=typeof window.DeviceOrientationEvent!=='undefined';
 const permReq=(hasDM&&typeof DeviceMotionEvent.requestPermission==='function')?DeviceMotionEvent.requestPermission.bind(DeviceMotionEvent):(hasDO&&typeof DeviceOrientationEvent.requestPermission==='function')?DeviceOrientationEvent.requestPermission.bind(DeviceOrientationEvent):null;
 function screenAngle(){let a;const so=screen.orientation;
@@ -238,7 +241,7 @@ function gyroPanel(msg,label){
  $('gps').textContent=msg;$('gpGo').textContent=label||'立即开启（弹出系统授权）';$('gyperm').style.display='flex'}
 function gyroPanelHide(){$('gyperm').style.display='none';if(gyroPaused&&state==='paused'){gyroPaused=false;resume()}}
 function gyroBind(){
- if(gyroBound)return;gyroBound=true;gyroTick=0;gyroWarned=false;oPrev=null;gl=0;
+ if(gyroBound)return;gyroBound=true;gyroTick=0;gyroWarned=false;oPrev=null;oMat=null;ux=0;uy=1;gl=0;
  if(hasDM)addEventListener('devicemotion',gyroMotion,true);
  if(hasDO)addEventListener('deviceorientation',gyroOrient,true);
  setTimeout(()=>{if(gyroOn&&gyroOK&&!gyroTick&&!gyroWarned){gyroWarned=true;
@@ -265,30 +268,47 @@ function gyroInit(ask){
   else gyroPanel(isSecure?'转动手机瞄准需要先允许浏览器使用运动传感器。点下方按钮可立即弹出系统授权窗口。':'当前不是 HTTPS 页面，浏览器通常不会授予运动传感器权限，请改用 https 打开后再开启陀螺仪。')
  }else if(hasDM||hasDO){gyroOK=true;gyroBind();gyroHint('陀螺仪已启用 · 转动手机瞄准')}
  else gyroPanel('当前浏览器不支持运动传感器，可以继续用触屏拖动或鼠标瞄准。','重新检测')}
-function gyroDelta(g,b){
- const an=screenAngle();let dy=g,dp=b;
- if(an===90){dy=b;dp=-g}else if(an===180){dy=-g;dp=-b}else if(an===270){dy=-b;dp=g}
- const f=Math.PI/180*1.15*(sens/.8)*(cam.fov/72)*(crs.classList.contains('hot')?.7:1);
- yaw+=dy*f;pitch=Math.max(-1.3,Math.min(1.3,pitch-dp*f))}
+/* u=(ux,uy)：世界上方向在设备坐标系中的分量。竖持 uy 主导，横持 ux 主导，与屏幕方向 API 无关 */
+const gyroRad=Math.PI/180,gyroDeg=180/Math.PI;
+function gyroUp(x,y){ux+=(x-ux)*.2;uy+=(y-uy)*.2}
+function gyroUpGravity(a){if(!a)return;const x=a.x||0,y=a.y||0,z=a.z||0,l=Math.hypot(x,y,z);if(l<1)return;gyroUp(x/l,y/l)}
+function gyroDevMat(al,be,ga){ // R = Rz(alpha)·Rx(beta)·Ry(gamma)，W3C Z-X'-Y''
+ const A=al*gyroRad,B=be*gyroRad,G=ga*gyroRad,ca=Math.cos(A),sa=Math.sin(A),cb=Math.cos(B),sb=Math.sin(B),cg=Math.cos(G),sg=Math.sin(G);
+ const m=[cg,0,sg,sb*sg,cb,-sb*cg,-cb*sg,sb,cb*cg];
+ return [ca*m[0]-sa*m[3],ca*m[1]-sa*m[4],ca*m[2]-sa*m[5],sa*m[0]+ca*m[3],sa*m[1]+ca*m[4],sa*m[2]+ca*m[5],m[6],m[7],m[8]]}
+function gyroDelta(g,b,al){
+ if(gyroSwap){const t=g;g=b;b=t}
+ let dy,dp;
+ if(Math.hypot(ux,uy)<.35){dy=al;dp=-b}                               // 平放：绕屏幕法线转
+ else if(Math.abs(uy)>=Math.abs(ux)){const s=uy>=0?1:-1;dy=s*g;dp=-s*b} // 竖持 / 倒置
+ else{const s=ux>=0?1:-1;dy=s*b;dp=s*g}                              // 横持
+ const f=gyroRad*1.15*(sens/.8)*(cam.fov/72)*(crs.classList.contains('hot')?.7:1);
+ yaw+=dy*f;pitch=Math.max(-1.3,Math.min(1.3,pitch+dp*f))}
 function gyroMotion(e){
- gyroTick=1;if(!gyroOn||state!=='play')return;
+ gyroTick=1;gyroUpGravity(e.accelerationIncludingGravity);
+ if(!gyroOn||state!=='play')return;
  const r=e.rotationRate;if(!r)return;
  const b=r.beta||0,g=r.gamma||0,al=r.alpha||0,now=performance.now(),dt=gl?Math.min((now-gl)/1000,.05):0;gl=now;
  if(!dt||Math.abs(b)+Math.abs(g)+Math.abs(al)<.02)return;
- gyroSrcOk=true;gyroDelta(g*dt,b*dt)}
-const wrap=d=>((d+540)%360)-180;
+ gyroSrcOk=true;gyroDelta(g*dt,b*dt,al*dt)}
 function gyroOrient(e){
- if(!gyroOn||state!=='play')return;
- const b=e.beta,g=e.gamma;if(b==null||g==null)return;
- gyroTick=1;const db=oPrev?wrap(b-oPrev.b):0,dg=oPrev?wrap(g-oPrev.g):0;oPrev={b,g};
- if(gyroSrcOk||Math.abs(db)+Math.abs(dg)<.01)return;
- gyroDelta(dg,db)}
+ gyroTick=1;const al=e.alpha,be=e.beta,ga=e.gamma;if(be==null||ga==null)return;
+ const R=gyroDevMat(al||0,be,ga||0);gyroUp(R[6],R[7]);
+ if(!oMat){oMat=R;return}
+ const d=[];for(let i=0;i<3;i++)for(let j=0;j<3;j++){let s=0;for(let k=0;k<3;k++)s+=oMat[k*3+i]*R[k*3+j];d.push(s)}
+ oMat=R;
+ if(!gyroOn||state!=='play'||gyroSrcOk)return;
+ const bb=(d[7]-d[5])/2*gyroDeg,gg=(d[2]-d[6])/2*gyroDeg,aa=(d[3]-d[1])/2*gyroDeg;
+ if(Math.abs(bb)+Math.abs(gg)+Math.abs(aa)<.01)return;
+ gyroDelta(gg,bb,aa)}
 $('gyc').addEventListener('click',()=>{gyroSet($('gyc').checked);if(gyroOn)gyroAsk()});
 $('gb').onclick=()=>{gyroSet(!gyroOn);if(gyroOn)gyroAsk()};
 $('gpGo').onclick=gyroAsk;
 $('gpReload').onclick=()=>location.reload();
 $('gpNo').onclick=()=>{gyroSet(false);gyroPanelHide()};
-gyroSet(gyroOn);gyroInit(false);
+function gyroSwapSet(v){gyroSwap=v;$('gflip').classList.toggle('on',v);try{localStorage.setItem('hunter-gswap',v?'1':'0')}catch(e){}}
+$('gflip').addEventListener('click',e=>{e.preventDefault();gyroSwapSet(!gyroSwap);gyroHint('陀螺仪轴向已'+(gyroSwap?'交换':'恢复'))});
+gyroSwapSet(gyroSwap);gyroSet(gyroOn);gyroInit(false);
 addEventListener('pointerdown',e=>{
  if(e.pointerType==='mouse')usedMouse=true;else if(e.pointerType==='touch')usedMouse=false;
  if(state!=='play'||e.target.closest('button'))return;
