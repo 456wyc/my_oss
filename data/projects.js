@@ -1,6 +1,6 @@
 /* 自动生成，请勿手改；执行 npm run sync 更新 */
 window.PROJECTS = {
-  "generatedAt": "2026-11-13T11:12:58.986Z",
+  "generatedAt": "2026-11-14T10:38:42.861Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
