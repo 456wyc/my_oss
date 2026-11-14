@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>林间猎手 3D</title>
+<style>
+:root{--panel:rgba(24,34,22,.78);--ink:#fff8e6;--gold:#ffc83d;--red:#e4572e;font-family:"Noto Serif SC","Songti SC",serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--panel:rgba(12,18,12,.82)}}
+:root[data-theme="dark"]{--panel:rgba(12,18,12,.82)}
+*{box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#9fd3e6;color:var(--ink);touch-action:none}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
+#hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);display:flex;gap:8px;justify-content:space-between;padding:10px 12px;pointer-events:none;font-weight:700}
+#hud div{background:var(--panel);padding:6px 12px;border-radius:10px;font-size:16px}
+#ammo{letter-spacing:2px;color:var(--gold)}
+#cross{position:fixed;left:50%;top:50%;width:34px;height:34px;margin:-17px;pointer-events:none;border:2px solid #fff;border-radius:50%;opacity:.85;mix-blend-mode:difference}
+#cross:after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px;background:var(--red);border-radius:50%}
+#combo{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 58px);text-align:center;font-size:22px;font-weight:900;color:var(--gold);text-shadow:0 2px 0 #0006;pointer-events:none}
+.pop{position:fixed;font-weight:900;font-size:24px;color:var(--gold);text-shadow:0 2px 0 #000a;pointer-events:none;transform:translate(-50%,-50%);animation:up .9s ease-out forwards}
+@keyframes up{to{transform:translate(-50%,-170%);opacity:0}}
+#flash{position:fixed;inset:0;background:#fff6c8;opacity:0;pointer-events:none}
+#ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(16,28,16,.55);padding:16px}
+#card{background:var(--panel);max-width:420px;width:100%;padding:26px 24px;border-radius:16px;text-align:center;line-height:1.7}
+#card h1{margin:0 0 6px;font-size:34px;letter-spacing:4px}
+#card p{margin:6px 0;font-size:15px;opacity:.92}
+button{font:inherit;font-weight:900;font-size:19px;color:#2a1a00;background:var(--gold);border:0;border-radius:12px;padding:12px 34px;margin-top:14px;cursor:pointer}
+#stick,#fire,#rl,#sc{position:fixed;display:none}
+.touch #stick,.touch #fire,.touch #rl,.touch #sc{display:block}
+#stick{left:calc(env(safe-area-inset-left,0px) + 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 28px);width:120px;height:120px;border-radius:50%;background:#ffffff26;border:2px solid #ffffff66;pointer-events:none}
+#knob{position:absolute;left:35px;top:35px;width:50px;height:50px;border-radius:50%;background:#ffffffaa}
+#fire{right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 34px);width:92px;height:92px;border-radius:50%;background:var(--red);border:3px solid #fff;color:#fff;font-size:18px;padding:0;margin:0}
+#rl{right:calc(env(safe-area-inset-right,0px) + 132px);bottom:calc(env(safe-area-inset-bottom,0px) + 40px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:14px;padding:0;margin:0}
+#sc{right:calc(env(safe-area-inset-right,0px) + 26px);bottom:calc(env(safe-area-inset-bottom,0px) + 140px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:13px;padding:0;margin:0;border:2px solid #fff6}
+#sc.on{background:var(--gold);color:#2a1a00}
+#wp{display:none}.touch #wp{display:block;position:fixed;right:calc(env(safe-area-inset-right,0px) + 132px);bottom:calc(env(safe-area-inset-bottom,0px) + 108px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:13px;padding:0;margin:0;border:2px solid #fff6}
+.lb{padding:6px 14px;font-size:16px;margin:4px;background:#fff3;color:var(--ink)}.lb.on{background:var(--gold);color:#2a1a00}.lb:disabled{opacity:.35}
+#sl{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);text-align:center;font-weight:700;z-index:5}#ov[style*="display: none"]+#sl{display:none}
+#gy{display:none;margin-left:14px}.touch #gy{display:inline}
+#gb{display:none}.touch #gb{display:block;position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 172px);width:60px;height:60px;border-radius:50%;background:var(--panel);color:#fff;font-size:12px;padding:0;margin:0;border:2px solid #fff6}#gb.on{background:var(--gold);color:#2a1a00}
+#ph{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 60px);width:48px;height:48px;border-radius:50%;background:var(--panel);color:#fff;font-size:22px;padding:0;margin:0;border:2px solid #fff6}
+#pv{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);z-index:20;padding:16px}.pc{max-width:min(92vw,720px);text-align:center}.pc p{margin:8px 0 0;font-size:14px;opacity:.85}
+#pimg{max-width:100%;max-height:66vh;border-radius:10px;border:3px solid #fff;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto}.pb button{margin:10px 6px 0}
+#sl label{margin:0 7px}#sl select{font:inherit}
+#tip{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 112px);transform:translateX(-50%);max-width:86vw;background:var(--panel);border:2px solid var(--gold);padding:8px 16px;border-radius:12px;font-weight:700;font-size:15px;text-align:center;display:none;pointer-events:none}
+#ps{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(10,16,10,.7);z-index:15}.pc2{background:var(--panel);padding:24px 32px;border-radius:16px;text-align:center}.pc2 h1{margin:0 0 6px;font-size:30px}.pc2 button{display:block;margin:12px auto 0;min-width:180px}
+body.paused #ov+#sl{display:block;z-index:16}
+#pa{display:none}.touch #pa{display:block;position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 116px);width:48px;height:48px;border-radius:50%;background:var(--panel);color:#fff;font-size:20px;padding:0;margin:0;border:2px solid #fff6}
+#card{max-height:92vh;overflow:auto;touch-action:pan-y}#card label{display:block;margin-top:8px;font-size:15px}
+body:after{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.38) 100%)}
+#cross{transition:transform .12s,border-color .12s}#cross.hot{border-color:#ff3b30;mix-blend-mode:normal;transform:scale(.8)}
+#vig{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .15s;background:radial-gradient(circle at 50% 50%,transparent 32%,#000d 62%)}
+#rd{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 60px);width:104px;height:104px;border-radius:50%;pointer-events:none}
+</style></head><body>
+<canvas id="c"></canvas>
+<div id="hud"><div id="time">⏱ 60</div><div id="score">得分 0</div><div id="ammo">●●●●●●</div></div>
+<div id="vig"></div><canvas id="rd" width="208" height="208"></canvas><div id="cross"></div><div id="combo"></div><div id="flash"></div>
+<div id="stick"><div id="knob"></div></div><button id="rl">换弹</button><button id="sc">瞄准镜</button><button id="wp">武器</button><button id="gb">陀螺仪</button><button id="ph">📷</button><button id="pa">⏸</button><button id="fire">开火</button>
+<div id="ov"><div id="card">
+<h1>林间猎手</h1>
+<p>在限定时间内达到目标分数即可过关，共 5 关。兔子 10 分，鹿 20 分，野猪 30 分，狐狸 40 分，棕熊 60 分。</p>
+<p>1 猎枪（声响大，会惊走周围猎物）· 2 弓箭（几乎无声，箭矢会下坠，要抬高准星）· 3 陷阱（会吸引猎物，踩中即捕获）。金色神鹿值 80 分。</p>
+<div id="lvs"></div><p id="lvinfo"></p><label><input type="checkbox" id="nm"> 夜间模式（全部关卡）</label><p id="help"></p><p id="best"></p>
+<button id="go">开始狩猎</button></div></div><div id="sl"><label>灵敏度 <input type="range" id="sn" min="0.3" max="1.5" step="0.05"></label><label id="gy"><input type="checkbox" id="gyc"> 陀螺仪</label><label>画质 <select id="qs"><option value="1">流畅</option><option value="2">标准</option><option value="3">高清</option></select></label></div>
+<div id="tip"></div><div id="ps"><div class="pc2"><h1>已暂停</h1><button id="prs">继续</button><button id="prt">重玩本关</button></div></div>
+<div id="pv"><div class="pc"><img id="pimg" alt="游戏照片"><p>长按图片也可以保存</p><div class="pb"><button id="psh">分享 / 保存</button><button id="pcl">继续</button></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a);
+const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
+if(isTouch)document.body.classList.add('touch');
+$('help').textContent=isTouch?'左侧拖动移动，右侧拖动即可上下左右转视角，轻点屏幕或按“开火”射击，“瞄准镜”放大远处猎物，“武器”切换猎枪、弓箭、陷阱。开启“陀螺仪”后转动手机即可调整准星。左上角雷达显示猎物方位。':'WASD 移动，鼠标瞄准，左键或空格射击，右键或 Z 开镜放大，1/2/3 或滚轮切换武器，N 夜间模式，P 拍照，Esc 暂停，方向键也可转视角，R 换弹。点击开始后鼠标会被锁定，按 Esc 退出。左上角雷达显示猎物方位。';
+let best=0;try{best=+localStorage.getItem('hunter-best')||0}catch(e){}
+if(best)$('best').textContent='最高分：'+best;
+
+const cv=$('c'),renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xcfe6e0);scene.fog=new THREE.Fog(0xcfe6e0,25,95);
+{const g=new THREE.SphereGeometry(150,16,12),c=[],a=g.attributes.position,top=new THREE.Color(0x4f95d6),hz=new THREE.Color(0xcfe6e0);for(let i=0;i<a.count;i++){const t=Math.max(0,a.getY(i)/150),k=hz.clone().lerp(top,Math.pow(t,.6));c.push(k.r,k.g,k.b)}g.setAttribute('color',new THREE.Float32BufferAttribute(c,3));window.sky=new THREE.Mesh(g,new THREE.MeshBasicMaterial({vertexColors:true,side:THREE.BackSide,fog:false,depthWrite:false}));scene.add(window.sky)}
+const cam=new THREE.PerspectiveCamera(72,1,.1,320);cam.rotation.order='YXZ';
+function resize(){renderer.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+const hemi=new THREE.HemisphereLight(0xe4f1ff,0x5a7a40,.62);scene.add(hemi);
+const sun=new THREE.DirectionalLight(0xfff0c0,.8);sun.position.set(30,50,20);sun.castShadow=true;sun.shadow.mapSize.set(isTouch?1024:2048,isTouch?1024:2048);const shc=sun.shadow.camera;shc.left=shc.bottom=-40;shc.right=shc.top=40;shc.far=160;sun.shadow.bias=-.0006;scene.add(sun,sun.target);
+const gtx=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#5a9a45';x.fillRect(0,0,128,128);for(let i=0;i<900;i++){x.fillStyle='hsl('+rnd(85,115)+','+rnd(35,55)+'%,'+rnd(28,42)+'%)';x.fillRect(rnd(0,128),rnd(0,128),rnd(1,4),rnd(1,4))}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(60,60);t.anisotropy=4;return t})();
+function blob(r,o){const m=new THREE.Mesh(new THREE.CircleGeometry(r,14),new THREE.MeshBasicMaterial({color:0,transparent:true,opacity:o,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.y=.03;m.raycast=()=>{};return m}
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(240,240),new THREE.MeshStandardMaterial({map:gtx,roughness:1}));
+ground.receiveShadow=true;ground.rotation.x=-Math.PI/2;scene.add(ground);
+const mat=(c,e)=>new THREE.MeshStandardMaterial({color:c,flatShading:true,emissive:e||0,roughness:.85,metalness:0});
+// 云
+const cm=new THREE.MeshBasicMaterial({color:0xffffff,fog:false});
+for(let i=0;i<14;i++){const g=new THREE.Group();for(let j=0;j<5;j++){const p=new THREE.Mesh(new THREE.IcosahedronGeometry(rnd(3,6),1),cm);p.position.set(j*4-8,rnd(-1,1),rnd(-2,2));p.scale.y=.55;g.add(p)}g.position.set(rnd(-110,110),rnd(35,55),rnd(-110,110));scene.add(g)}
+// 树
+const trees=[],treeObjs=[],tg=new THREE.CylinderGeometry(.25,.35,2,6),lg=new THREE.ConeGeometry(1.6,3,7),lg2=new THREE.ConeGeometry(1.2,2.4,7);
+const tm=mat(0x6b4423),lm=[0x2e7d32,0x3b8f3f,0x1f6b33].map(c=>mat(c));
+for(let i=0;i<100;i++){let x,z;do{x=rnd(-55,55);z=rnd(-55,55)}while(Math.hypot(x,z)<7);
+ const g=new THREE.Group(),s=rnd(.8,1.6);
+ const a=new THREE.Mesh(tg,tm);a.position.y=1;const b=new THREE.Mesh(lg,lm[i%3]);b.position.y=3.2;const c=new THREE.Mesh(lg2,lm[i%3]);c.position.y=4.8;
+ a.castShadow=b.castShadow=c.castShadow=true;g.add(a,b,c);g.scale.setScalar(s);g.position.set(x,0,z);scene.add(g);trees.push({x,z,r:.45*s});treeObjs.push(g)}
+for(let i=0;i<25;i++){const r=new THREE.Mesh(new THREE.DodecahedronGeometry(rnd(.4,1)),mat(0x8d8d8d));r.position.set(rnd(-50,50),.2,rnd(-50,50));scene.add(r)}
+
+{const d=new THREE.Object3D(),cc=new THREE.Color(),gm=new THREE.InstancedMesh(new THREE.ConeGeometry(.1,.7,3),new THREE.MeshLambertMaterial({color:0xffffff,flatShading:true}),1400),fm=new THREE.InstancedMesh(new THREE.IcosahedronGeometry(.1,0),new THREE.MeshLambertMaterial({color:0xffffff}),260),pal=[0xffe14d,0xffffff,0xff8fb1,0xc79bff];gm.frustumCulled=fm.frustumCulled=false;
+for(let i=0;i<1400;i++){d.position.set(rnd(-60,60),.25,rnd(-60,60));d.rotation.set(rnd(-.2,.2),rnd(0,6),rnd(-.2,.2));d.scale.setScalar(rnd(.6,1.6));d.updateMatrix();gm.setMatrixAt(i,d.matrix);gm.setColorAt(i,cc.setHSL(rnd(.22,.3),.5,rnd(.28,.42)))}
+for(let i=0;i<260;i++){d.position.set(rnd(-60,60),.12,rnd(-60,60));d.rotation.set(0,0,0);d.scale.setScalar(rnd(.8,1.4));d.updateMatrix();fm.setMatrixAt(i,d.matrix);fm.setColorAt(i,cc.set(pal[i%4]))}scene.add(gm,fm)}
+// 动物
+const TYPES={rabbit:{c:0xc9c2b8,s:.55,sp:4.2,pts:10},deer:{c:0xa0642a,s:1,sp:3,pts:20},boar:{c:0x4e3b31,s:.85,sp:3.4,pts:30},gold:{c:0xffd54a,s:1.15,sp:4.6,pts:80},fox:{c:0xd9622b,s:.8,sp:5.4,pts:40},bear:{c:0x5b3a22,s:1.5,sp:2.8,pts:60}};
+function box(w,h,d,m,x,y,z){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);return o}
+function build(type){
+ const T=TYPES[type],g=new THREE.Group(),m=type==='gold'?mat(T.c,0x886600):mat(T.c),dk=mat(0x222222),wh=mat(0xf5f0e6);
+ g.add(box(.5,.45,1,m,0,.75,0),box(.3,.3,.36,m,0,.98,.62),box(.06,.06,.04,dk,.1,1.04,.8),box(.06,.06,.04,dk,-.1,1.04,.8),box(.12,.12,.12,wh,0,.8,-.54));
+ if(type==='rabbit'){g.add(box(.07,.4,.07,m,.08,1.3,.58),box(.07,.4,.07,m,-.08,1.3,.58))}
+ else if(type==='boar'){g.add(box(.05,.05,.2,wh,.12,.88,.82),box(.05,.05,.2,wh,-.12,.88,.82))}
+ else if(type==='fox'){g.add(box(.16,.16,.55,m,0,.8,-.8),box(.16,.16,.15,wh,0,.8,-1.1),box(.07,.16,.07,m,.1,1.2,.6),box(.07,.16,.07,m,-.1,1.2,.6))}else if(type==='bear'){g.add(box(.18,.18,.1,m,.12,1.2,.55),box(.18,.18,.1,m,-.12,1.2,.55))}else{const a=mat(0xe8d8b0);[1,-1].forEach(s=>{g.add(box(.05,.45,.05,a,s*.1,1.4,.55),box(.05,.05,.3,a,s*.1,1.6,.62),box(.05,.05,.3,a,s*.1,1.5,.5))})}
+ const legs=[];[[.18,.38],[-.18,.38],[.18,-.38],[-.18,-.38]].forEach(p=>{const geo=new THREE.BoxGeometry(.12,.5,.12);geo.translate(0,-.25,0);const l=new THREE.Mesh(geo,dk);l.position.set(p[0],.52,p[1]);g.add(l);legs.push(l)});
+ g.traverse(o=>{if(o.isMesh)o.castShadow=true});g.scale.setScalar(T.s*1.45);return{g,legs}}
+const animals=[];let px=0,pz=0,yaw=0,pitch=0,recoil=0;
+function spawn(type){
+ if(!type){const P=LV[lv].pool;type=Math.random()<.07&&!animals.some(a=>a.type==='gold')?'gold':P[Math.floor(Math.random()*P.length)]}
+ const b=build(type);let x,z;{const r=rnd(12,34),an=rnd(0,6.283);x=Math.max(-46,Math.min(46,px+Math.sin(an)*r));z=Math.max(-46,Math.min(46,pz+Math.cos(an)*r))}
+ b.g.position.set(x,0,z);b.g.userData.animal=true;scene.add(b.g);
+ const a={type,g:b.g,legs:b.legs,sp:TYPES[type].sp,pts:TYPES[type].pts,tx:x,tz:z,wait:rnd(0,2),ph:0,dead:false,t:0,mv:0};b.g.userData.ref=a;animals.push(a)}
+['rabbit','rabbit','rabbit','deer','deer','deer','boar','boar','deer','rabbit'].forEach(spawn);
+
+// 粒子与音效
+const parts=[],pg=new THREE.BoxGeometry(.12,.12,.12);
+function burst(p,c,n){for(let i=0;i<n;i++){const m=new THREE.Mesh(pg,new THREE.MeshBasicMaterial({color:c}));m.position.copy(p);m.v=new THREE.Vector3(rnd(-3,3),rnd(1,5),rnd(-3,3));m.life=.7;scene.add(m);parts.push(m)}}
+let ac;function snd(f,d,type,v){try{if(!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(40,t+d);g.gain.setValueAtTime(v||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(ac.destination);o.start();o.stop(t+d)}catch(e){}}
+function pop(p,txt){const v=p.clone();v.y+=1.2;v.project(cam);const d=document.createElement('div');d.className='pop';d.textContent=txt;d.style.left=((v.x*.5+.5)*innerWidth)+'px';d.style.top=((-v.y*.5+.5)*innerHeight)+'px';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
+
+// 游戏状态
+let state='menu',score=0,tleft=60,ammo=6,reload=0,cd=0,combo=0;
+function hud(){$('time').textContent='⏱ '+Math.ceil(tleft);$('score').textContent='第'+(lv+1)+'关 '+score+'/'+LV[lv].goal;$('ammo').textContent=W[wi].n+' '+(wi===2?'▲'.repeat(ammo):reload>0?'装填…':'●'.repeat(ammo)+'○'.repeat(W[wi].mag-ammo));$('combo').textContent=combo>1?'连击 ×'+combo:''}
+function doReload(){if(state!=='play'||reload>0||wi===2||ammo===W[wi].mag)return;reload=W[wi].rl;snd(300,.15,'sawtooth',.08);hud()}
+const rc=new THREE.Raycaster();rc.far=75;
+const OFF=[[0,0],[.04,0],[-.04,0],[0,.06],[0,-.06],[.03,.04],[-.03,.04],[.03,-.04],[-.03,-.04]];
+function shoot(){
+ if(state!=='play'||cd>0||reload>0)return;
+ if(ammo<=0){doReload();return}
+ if(wi===2){placeTrap();return}const w=W[wi];ammo--;cd=w.cd;recoil=w.rec;snd(...w.snd);alertAll(w.noise);try{navigator.vibrate&&navigator.vibrate(w.noise>20?25:8)}catch(e){}tsh++;rc.far=w.rng;if(wi===1){shootArrow();if(ammo===0)doReload();hud();return}
+ const f=$('flash');f.style.transition='none';f.style.opacity=wi?0:.35;requestAnimationFrame(()=>{f.style.transition='opacity .15s';f.style.opacity=0});
+ const targets=animals.filter(a=>!a.dead).map(a=>a.g).concat(treeObjs);let hit=null;
+ for(const o of OFF){rc.setFromCamera({x:o[0],y:o[1]},cam);const h=rc.intersectObjects(targets,true)[0];
+  if(h){let n=h.object;while(n&&!n.userData.animal&&n.parent!==scene)n=n.parent;if(n&&n.userData.animal){hit={a:n.userData.ref,p:h.point};break}if(o[0]===0&&o[1]===0)break}}
+ if(hit){const a=hit.a;a.dead=true;a.t=0;combo++;const pts=Math.round(a.pts*(1+.25*(combo-1)));score+=pts;
+  burst(hit.p,a.type==='gold'?0xffd54a:0xc0392b,14);pop(a.g.position,'+'+pts);snd(520,.18,'triangle',.18);try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}}
+ else combo=0;
+ if(ammo===0)doReload();hud()}
+function start(){score=0;tleft=LV[lv].t;wi=0;ams=W.map(w=>w.mag);ammo=ams[0];reload=0;combo=0;clearTraps();clearArrows();applyEnv();gyroInit();banner('第'+(lv+1)+'关 · '+LV[lv].n);px=0;pz=0;yaw=0;pitch=0;state='play';$('ov').style.display='none';
+ animals.forEach(a=>scene.remove(a.g));animals.length=0;for(let i=0;i<LV[lv].c;i++)spawn();
+ try{ac=ac||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+ if(usedMouse){try{cv.requestPointerLock()}catch(e){}}setZoom(false);hud()}
+function end(){state='over';if(document.exitPointerLock)document.exitPointerLock();
+ const nb=score>best;if(nb){best=score;try{localStorage.setItem('hunter-best',best)}catch(e){}}
+ const r=score>=400?'传奇猎人':score>=250?'神射手':score>=120?'老练猎手':'见习猎人';
+ $('card').innerHTML='<h1>时间到</h1><p style="font-size:42px;font-weight:900;margin:0;color:var(--gold)">'+score+' 分</p><p>称号：'+r+(nb?'，新纪录！':'')+'</p><p>最高分：'+best+'</p><button id="go2">再来一局</button>';
+ $('ov').style.display='flex';$('go2').onclick=start}
+$('go').onclick=start;
+
+/* 旧输入（已停用）
+const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='KeyR')doReload();if(e.code==='Space'){e.preventDefault();shoot()}});addEventListener('keyup',e=>keys[e.code]=0);
+const locked=()=>document.pointerLockElement===cv;let md=null;
+function look(dx,dy,k){yaw-=dx*k;pitch=Math.max(-1.2,Math.min(1.2,pitch-dy*k))}
+cv.addEventListener('mousedown',e=>{if(isTouch||e.button!==0)return;if(locked())shoot();else md={x:e.clientX,y:e.clientY,m:0}});
+addEventListener('mousemove',e=>{if(isTouch)return;if(locked())look(e.movementX,e.movementY,.0024);else if(md){const dx=e.clientX-md.x,dy=e.clientY-md.y;md.m+=Math.abs(dx)+Math.abs(dy);md.x=e.clientX;md.y=e.clientY;look(dx,dy,.004)}});
+addEventListener('mouseup',()=>{if(md&&md.m<6)shoot();md=null});
+// 输入：触屏
+let jx=0,jy=0;const tc={},st=$('stick'),kn=$('knob');
+addEventListener('touchstart',e=>{if(state!=='play')return;for(const t of e.changedTouches){if(t.target.closest('button'))continue;
+ if(t.clientX<innerWidth*.45){tc[t.identifier]={k:'m',x:t.clientX,y:t.clientY};st.style.left=(t.clientX-60)+'px';st.style.bottom=(innerHeight-t.clientY-60)+'px'}
+ else tc[t.identifier]={k:'l',x:t.clientX,y:t.clientY}}},{passive:false});
+addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){const c=tc[t.identifier];if(!c)continue;
+ if(c.k==='m'){let dx=t.clientX-c.x,dy=t.clientY-c.y;const l=Math.hypot(dx,dy),m=50;if(l>m){dx*=m/l;dy*=m/l}jx=dx/m;jy=dy/m;kn.style.transform='translate('+dx+'px,'+dy+'px)'}
+ else{look(t.clientX-c.x,t.clientY-c.y,.0055);c.x=t.clientX;c.y=t.clientY}}},{passive:false});
+function tend(e){for(const t of e.changedTouches){const c=tc[t.identifier];if(c&&c.k==='m'){jx=jy=0;kn.style.transform='';st.style.left='';st.style.bottom=''}delete tc[t.identifier]}}
+addEventListener('touchend',tend);addEventListener('touchcancel',tend);
+$('fire').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();shoot()},{passive:false});
+$('rl').addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();doReload()},{passive:false});
+*/
+const keys={},looks={};let jx=0,jy=0,zoom=false,usedMouse=!isTouch,md=null;const ptr={},st=$('stick'),kn=$('knob'),rdc=$('rd').getContext('2d'),crs=$('cross');let fr=0;
+const lockedNow=()=>document.pointerLockElement===cv;
+function setZoom(z){zoom=z;$('vig').style.opacity=z?1:0;$('sc').classList.toggle('on',z)}
+let sens=.8;try{sens=+localStorage.getItem('hunter-sn')||.8}catch(e){}$('sn').value=sens;$('sn').oninput=e=>{sens=+e.target.value;try{localStorage.setItem('hunter-sn',sens)}catch(x){}};
+function look(dx,dy,k){const f=Math.pow(cam.fov/72,1.4)*sens*(crs.classList.contains('hot')?.6:1);yaw-=dx*k*f;pitch=Math.max(-1.3,Math.min(1.3,pitch-dy*k*f))}
+addEventListener('keydown',e=>{const c=e.code;if(c.startsWith('Arrow')){looks[c]=1;e.preventDefault();return}keys[c]=1;if(c==='KeyR')doReload();if(c==='KeyZ')setZoom(!zoom);if(c==='Digit1')setW(0);if(c==='Digit2')setW(1);if(c==='Digit3')setW(2);if(c==='KeyQ')setW((wi+1)%3);if(c==='KeyN'){night=!night;applyEnv()}if(c==='KeyP')photo();if(c==='Escape')pause();if(c==='Space'){e.preventDefault();shoot()}});
+addEventListener('keyup',e=>{delete looks[e.code];keys[e.code]=0});
+addEventListener('contextmenu',e=>e.preventDefault());
+let gyroOn=false,gyroAtt=false,gl=0;try{gyroOn=localStorage.getItem('hunter-gy')==='1'}catch(e){}
+function gyroSet(v){gyroOn=v;$('gyc').checked=v;$('gb').classList.toggle('on',v);try{localStorage.setItem('hunter-gy',v?'1':'0')}catch(e){}}
+function gyroInit(){if(!gyroOn||gyroAtt)return;const go=()=>{gyroAtt=true;gl=0;addEventListener('devicemotion',gyroMove)};if(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission==='function'){DeviceMotionEvent.requestPermission().then(r=>{if(r==='granted')go();else gyroSet(false)}).catch(()=>gyroSet(false))}else go()}
+function gyroMove(e){const now=performance.now(),dt=gl?Math.min((now-gl)/1000,.05):0;gl=now;if(!gyroOn||state!=='play'||!dt)return;const r=e.rotationRate;if(!r)return;
+ const b=r.beta||0,g=r.gamma||0,an=(((screen.orientation?screen.orientation.angle:-(window.orientation||0))%360)+360)%360;let y=g,p=b;if(an===90){y=b;p=-g}else if(an===180){y=-g;p=-b}else if(an===270){y=-b;p=g}
+ const k=dt*Math.PI/180*(sens/.8)*(cam.fov/72)*(crs.classList.contains('hot')?.7:1);yaw+=y*k;pitch=Math.max(-1.3,Math.min(1.3,pitch+p*k))}
+$('gyc').onchange=e=>{gyroSet(e.target.checked);gyroInit()};$('gb').onclick=()=>{gyroSet(!gyroOn);gyroInit()};gyroSet(gyroOn);if(!(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission==='function'))gyroInit();
+addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse')usedMouse=true;else if(e.pointerType==='touch')usedMouse=false;
+ if(state!=='play'||e.target.closest('button'))return;
+ if(e.pointerType==='mouse'){if(e.button===2)setZoom(true);else if(e.button===0){if(lockedNow())shoot();else md={x:e.clientX,y:e.clientY,m:0}}return}
+ const left=e.clientX<innerWidth*.4;ptr[e.pointerId]={k:left?'m':'l',x:e.clientX,y:e.clientY,t:performance.now(),m:0};
+ if(left){st.style.left=(e.clientX-60)+'px';st.style.bottom=(innerHeight-e.clientY-60)+'px'}});
+addEventListener('pointermove',e=>{
+ if(e.pointerType==='mouse'){if(lockedNow())look(e.movementX,e.movementY,.0016);else if(md){const dx=e.clientX-md.x,dy=e.clientY-md.y;md.m+=Math.abs(dx)+Math.abs(dy);md.x=e.clientX;md.y=e.clientY;look(dx,dy,.003)}return}
+ const c=ptr[e.pointerId];if(!c)return;
+ if(c.k==='m'){let dx=e.clientX-c.x,dy=e.clientY-c.y;const l=Math.hypot(dx,dy),M=50;if(l>M){dx*=M/l;dy*=M/l}jx=dx/M;jy=dy/M;kn.style.transform='translate('+dx+'px,'+dy+'px)'}
+ else{const dx=e.clientX-c.x,dy=e.clientY-c.y;c.m+=Math.abs(dx)+Math.abs(dy);c.x=e.clientX;c.y=e.clientY;look(dx,dy,.0042)}});
+function pend(e){if(e.pointerType==='mouse'){if(e.button===2)setZoom(false);else if(md&&md.m<6)shoot();md=null;return}
+ const c=ptr[e.pointerId];if(!c)return;
+ if(c.k==='m'){jx=jy=0;kn.style.transform='';st.style.left='';st.style.bottom=''}else if(e.type==='pointerup'&&c.m<14&&performance.now()-c.t<260)shoot();
+ delete ptr[e.pointerId]}
+addEventListener('pointerup',pend);addEventListener('pointercancel',pend);
+$('fire').addEventListener('pointerdown',e=>{e.preventDefault();shoot()});
+$('rl').addEventListener('pointerdown',e=>{e.preventDefault();doReload()});
+$('sc').addEventListener('pointerdown',e=>{e.preventDefault();setZoom(!zoom)});$('wp').addEventListener('pointerdown',e=>{e.preventDefault();setW((wi+1)%3)});addEventListener('wheel',e=>setW((wi+(e.deltaY>0?1:2))%3));
+function frame(dt){
+ const L=looks;if(L.ArrowLeft||L.ArrowRight||L.ArrowUp||L.ArrowDown){const f=cam.fov/72*1.1*dt*sens;yaw+=((L.ArrowLeft?1:0)-(L.ArrowRight?1:0))*f;pitch=Math.max(-1.3,Math.min(1.3,pitch+((L.ArrowUp?1:0)-(L.ArrowDown?1:0))*f))}
+ const tf=zoom?28:72;if(Math.abs(cam.fov-tf)>.1){cam.fov+=(tf-cam.fov)*Math.min(1,dt*12);cam.updateProjectionMatrix()}
+ sky.position.set(px,0,pz);{const nw=performance.now();sun.position.set(px+sunOff[0],sunOff[1],pz+sunOff[2]);sun.target.position.set(px,0,pz);ff.position.set(px,0,pz);ff.material.opacity=.5+Math.sin(nw/300)*.4;treeObjs.forEach((t,i)=>t.rotation.z=Math.sin(nw/900+i)*.012)}if(state!=='play')return;
+ if(++fr%4===0){rc.setFromCamera({x:0,y:0},cam);const h=rc.intersectObjects(animals.filter(a=>!a.dead).map(a=>a.g).concat(treeObjs),true)[0];let n=h&&h.object;while(n&&!n.userData.animal&&n.parent!==scene)n=n.parent;crs.classList.toggle('hot',!!(n&&n.userData.animal))}
+ stepArrows(dt);tutStep(dt);for(let i=traps.length-1;i>=0;i--){const t=traps[i],a=animals.find(q=>!q.dead&&Math.hypot(q.g.position.x-t.x,q.g.position.z-t.z)<1.3);if(a){a.dead=true;a.t=0;score+=a.pts;burst(a.g.position,0xd9b36a,16);pop(a.g.position,'陷阱 +'+a.pts);snd(300,.25,'triangle',.18);scene.remove(t.g);traps.splice(i,1);hud()}}
+ const x=rdc,c=104,R=100,sn=Math.sin(yaw),cs=Math.cos(yaw);x.clearRect(0,0,208,208);x.fillStyle='rgba(12,22,12,.55)';x.beginPath();x.arc(c,c,R,0,6.283);x.fill();x.strokeStyle='#ffffff55';x.lineWidth=2;x.beginPath();x.arc(c,c,R/2,0,6.283);x.stroke();
+ for(const a of animals){if(a.dead)continue;const dx=a.g.position.x-px,dz=a.g.position.z-pz,fx=-dx*sn-dz*cs,rx=dx*cs-dz*sn,d=Math.hypot(fx,rx),k=d>45?45/d:1;x.fillStyle=a.type==='gold'?'#ffd23d':'#ff7b54';x.beginPath();x.arc(c+rx*k*R/45,c-fx*k*R/45,a.type==='gold'?8:5,0,6.283);x.fill()}
+ x.fillStyle='#fff';x.beginPath();x.moveTo(c,c-10);x.lineTo(c+7,c+8);x.lineTo(c-7,c+8);x.fill()}
+
+const LV=[{n:'晨雾林地',env:'day',t:60,goal:100,c:10,pool:['rabbit','rabbit','deer','deer','boar']},{n:'黄昏猎场',env:'dusk',t:60,goal:200,c:11,pool:['rabbit','deer','boar','fox','fox']},{n:'月夜追猎',env:'night',t:70,goal:300,c:12,pool:['deer','boar','fox','fox','bear']},{n:'熊出没',env:'dusk',t:70,goal:420,c:12,pool:['boar','fox','bear','bear','deer']},{n:'午夜终局',env:'night',t:80,goal:600,c:14,pool:['fox','bear','boar','deer','rabbit']}];
+const ENV={day:{sky:[0x4f95d6,0xcfe6e0],fog:0xcfe6e0,fd:95,hemi:.62,sun:.8,sc:0xfff0c0,so:[30,50,20],fl:0,ex:1.15,orb:[80,110,-60,5],oc:0xfff4c0},dusk:{sky:[0x31407f,0xf4a261],fog:0xdc9a6a,fd:80,hemi:.42,sun:.9,sc:0xff9a55,so:[60,18,30],fl:0,ex:1.2,orb:[110,22,-60,9],oc:0xffa050},night:{sky:[0x03081c,0x1b2a55],fog:0x0e1630,fd:60,hemi:.3,sun:.55,sc:0x8fa6ff,so:[-30,60,-20],fl:1,ex:1.5,orb:[-70,95,-80,6],oc:0xe8eeff}};
+const W=[{n:'猎枪·响',mag:6,cd:.28,rl:1.4,noise:48,rec:.05,rng:75,snd:[180,.22,'sawtooth',.2]},{n:'弓箭·静',mag:1,cd:.15,rl:.9,noise:6,rec:.015,rng:45,snd:[650,.14,'triangle',.06]},{n:'陷阱',mag:3,cd:.5,rl:0,noise:0,rec:0,rng:0,snd:[120,.2,'sine',.15]}];
+let lv=0,wi=0,ams=[6,1,3],night=false,unlocked=0,sunOff=[30,50,20];try{unlocked=+localStorage.getItem('hunter-ul')||0}catch(e){}
+const traps=[];
+const stars=(()=>{const p=[];for(let i=0;i<500;i++){const a=rnd(0,6.283),h=rnd(.08,1),r=Math.sqrt(1-h*h)*140;p.push(Math.cos(a)*r,h*140,Math.sin(a)*r)}const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));return new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:1.8,sizeAttenuation:false,fog:false}))})();
+const ff=(()=>{const p=[];for(let i=0;i<80;i++)p.push(rnd(-30,30),rnd(.4,3),rnd(-30,30));const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));const o=new THREE.Points(g,new THREE.PointsMaterial({color:0xd8ff6a,size:5,sizeAttenuation:false,transparent:true,fog:false}));o.frustumCulled=false;return o})();
+const orb=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshBasicMaterial({fog:false,toneMapped:false}));sky.add(stars,orb);scene.add(ff);
+const flash=new THREE.SpotLight(0xfff1cf,2.2,50,.5,.6,1);cam.add(flash,flash.target);flash.target.position.set(0,0,-5);scene.add(cam);
+function applyEnv(){const E=ENV[night?'night':LV[lv].env],top=new THREE.Color(E.sky[0]),hz=new THREE.Color(E.sky[1]),g=sky.geometry,a=g.attributes.position,c=g.attributes.color;for(let i=0;i<a.count;i++){const k=hz.clone().lerp(top,Math.pow(Math.max(0,a.getY(i)/150),.6));c.setXYZ(i,k.r,k.g,k.b)}c.needsUpdate=true;scene.background.set(E.fog);scene.fog.color.set(E.fog);scene.fog.far=E.fd;hemi.intensity=E.hemi;sun.intensity=E.sun;sun.color.set(E.sc);sunOff=E.so;flash.visible=!!E.fl;stars.visible=ff.visible=!!E.fl;orb.position.set(E.orb[0],E.orb[1],E.orb[2]);orb.scale.setScalar(E.orb[3]);orb.material.color.set(E.oc);renderer.toneMappingExposure=E.ex}
+function banner(t){const d=document.createElement('div');d.className='pop';d.textContent=t;d.style.left='50%';d.style.top='30%';document.body.appendChild(d);setTimeout(()=>d.remove(),900)}
+function setW(i){if(state!=='play'||i===wi)return;tsw++;ams[wi]=ammo;wi=i;ammo=ams[i];reload=0;cd=.2;hud()}
+function alertAll(r){animals.forEach(a=>{if(!a.dead&&Math.hypot(a.g.position.x-px,a.g.position.z-pz)<r)a.alert=4})}
+function placeTrap(){if(ammo<=0||cd>0)return;ammo--;cd=.6;const x=px-Math.sin(yaw)*1.8,z=pz-Math.cos(yaw)*1.8,g=new THREE.Group(),pit=new THREE.Mesh(new THREE.CircleGeometry(.9,14),new THREE.MeshBasicMaterial({color:0x2b1d12}));pit.rotation.x=-Math.PI/2;pit.position.y=.04;g.add(pit);for(let i=0;i<6;i++){const s=box(.08,.04,.9,mat(0x7a5a33),0,.07,0);s.rotation.y=i*.52;g.add(s)}g.position.set(x,0,z);scene.add(g);traps.push({x,z,g});snd(120,.2,'sine',.15);hud()}
+function clearTraps(){traps.forEach(t=>scene.remove(t.g));traps.length=0}
+function finish(){state='over';$('tip').style.display='none';if(document.exitPointerLock)document.exitPointerLock();setZoom(false);const L=LV[lv],ok=score>=L.goal,last=lv===LV.length-1;if(ok&&lv+1>unlocked&&!last){unlocked=lv+1;try{localStorage.setItem('hunter-ul',unlocked)}catch(e){}}
+ const rt=score>=L.goal*1.6?'传奇猎人':score>=L.goal*1.25?'神射手':ok?'老练猎手':'见习猎人';
+ $('card').innerHTML='<h1>'+(ok?(last?'全部通关':'过关'):'未达标')+'</h1><p style="font-size:42px;font-weight:900;margin:0;color:var(--gold)">'+score+' / '+L.goal+'</p><p>称号：'+rt+'</p><button id="shr" style="margin-right:8px">拍照</button><button id="go2">'+(ok?(last?'重新开始':'下一关'):'重试本关')+'</button>';
+ $('ov').style.display='flex';$('shr').onclick=photo;$('go2').onclick=()=>{if(ok)lv=last?0:lv+1;start()}}
+function menuLv(){const d=$('lvs');d.innerHTML='';LV.forEach((L,i)=>{const b=document.createElement('button');b.className='lb'+(i===lv?' on':'');b.disabled=i>unlocked;b.textContent=i+1;b.onclick=()=>{lv=i;menuLv();applyEnv()};d.appendChild(b)});$('lvinfo').textContent='第'+(lv+1)+'关「'+LV[lv].n+'」：'+LV[lv].t+' 秒内达到 '+LV[lv].goal+' 分'}
+$('nm').onchange=e=>{night=e.target.checked;applyEnv()};menuLv();applyEnv();
+let snapReq=false,photoBlob=null,pst='play';
+function photo(){if(state==='play'||state==='over')snapReq=true}
+function shot(){const w=cv.width,h=cv.height,c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');x.drawImage(cv,0,0);
+ const s=Math.max(16,Math.round(w/42));x.fillStyle='rgba(0,0,0,.45)';x.fillRect(0,h-s*2.8,w,s*2.8);x.fillStyle='#fff8e6';x.font='700 '+s+'px sans-serif';x.fillText('林间猎手 3D · 第'+(lv+1)+'关「'+LV[lv].n+'」· 得分 '+score,s,h-s*1.5);x.fillStyle='#ffc83d';x.font=Math.round(s*.7)+'px sans-serif';x.fillText(new Date().toLocaleDateString(),s,h-s*.6);
+ snd(1500,.06,'square',.08);const f=$('flash');f.style.transition='none';f.style.opacity=.8;requestAnimationFrame(()=>{f.style.transition='opacity .3s';f.style.opacity=0});
+ c.toBlob(b=>{if(!b)return;photoBlob=b;const im=$('pimg');if(im.src.startsWith('blob:'))URL.revokeObjectURL(im.src);im.src=URL.createObjectURL(b);pst=state;state='photo';if(document.exitPointerLock)document.exitPointerLock();$('pv').style.display='flex'},'image/jpeg',.92)}
+$('pcl').onclick=()=>{$('pv').style.display='none';if(state==='photo')state=pst;if(state==='play'&&usedMouse){try{cv.requestPointerLock()}catch(e){}}};
+$('psh').onclick=async()=>{const f=new File([photoBlob],'hunter.jpg',{type:'image/jpeg'});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'林间猎手 3D',text:'我在《林间猎手 3D》第'+(lv+1)+'关拿了 '+score+' 分！'});return}}catch(e){if(e.name==='AbortError')return}
+ const a=document.createElement('a');a.href=$('pimg').src;a.download='hunter-'+Date.now()+'.jpg';document.body.appendChild(a);a.click();a.remove()};
+$('ph').addEventListener('pointerdown',e=>{e.preventDefault();photo()});
+let ql=2;try{ql=+localStorage.getItem('hunter-q')||(isTouch?2:3)}catch(e){}
+function setQ(q){ql=q;$('qs').value=q;renderer.setPixelRatio(q===1?1:Math.min(devicePixelRatio,q===2?1.5:2));resize();sun.castShadow=q>1;const m=q===3?2048:1024;if(sun.shadow.mapSize.x!==m){if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}sun.shadow.mapSize.set(m,m)}try{localStorage.setItem('hunter-q',q)}catch(e){}}
+$('qs').onchange=e=>setQ(+e.target.value);setQ(ql);
+const arrows=[],AG=new THREE.Vector3(0,-6,0);
+function shootArrow(){const d=new THREE.Vector3(0,0,-1).applyEuler(cam.rotation),m=new THREE.Group();m.add(box(.03,.03,.9,mat(0xd8c8a0),0,0,0),box(.08,.08,.14,mat(0x555555),0,0,.5));m.position.copy(cam.position).addScaledVector(d,.8);m.position.y-=.15;m.v=d.clone().multiplyScalar(60);m.age=0;m.lookAt(m.position.clone().add(m.v));scene.add(m);arrows.push(m)}
+function clearArrows(){arrows.forEach(m=>scene.remove(m));arrows.length=0}
+function hitAnimal(a,p){a.dead=true;a.t=0;combo++;const pts=Math.round(a.pts*(1+.25*(combo-1)));score+=pts;burst(p,a.type==='gold'?0xffd54a:0xc0392b,14);pop(a.g.position,'+'+pts);snd(520,.18,'triangle',.18);try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}hud()}
+function stepArrows(dt){for(let i=arrows.length-1;i>=0;i--){const m=arrows[i];m.age+=dt;
+ if(m.stuck){if(m.age>m.stuck){scene.remove(m);arrows.splice(i,1)}continue}
+ let done=false;for(let s=0;s<3&&!done;s++){const h=dt/3,p0=m.position.clone();m.v.addScaledVector(AG,h);m.position.addScaledVector(m.v,h);
+  for(const a of animals){if(a.dead)continue;const c=a.g.position,k=a.g.scale.x,cy=.8*k,r=.55*k+.3,sg=m.position.clone().sub(p0),t=Math.max(0,Math.min(1,((c.x-p0.x)*sg.x+(cy-p0.y)*sg.y+(c.z-p0.z)*sg.z)/(sg.lengthSq()||1))),dx=p0.x+sg.x*t-c.x,dy=p0.y+sg.y*t-cy,dz=p0.z+sg.z*t-c.z;
+   if(dx*dx+dy*dy+dz*dz<r*r){hitAnimal(a,m.position);m.stuck=.01;m.age=0;done=true;break}}
+  if(done)break;
+  if(m.position.y<=.05){m.position.y=.05;m.stuck=4;m.age=0;combo=0;hud();done=true;break}
+  for(const tr of trees){if(Math.hypot(m.position.x-tr.x,m.position.z-tr.z)<tr.r+.08&&m.position.y<4){m.stuck=4;m.age=0;combo=0;hud();done=true;break}}}
+ if(!done){m.lookAt(m.position.clone().add(m.v));if(m.age>6){scene.remove(m);arrows.splice(i,1);combo=0}}}}
+let tut=0,tpx=0,tpz=0,tpy=0,tpp=0,tmv=0,tlk=0,tsh=0,tsw=0,tt=0;try{if(localStorage.getItem('hunter-tut')==='1')tut=9}catch(e){}
+const TIPS=[()=>isTouch?'左半屏拖动：移动位置':'WASD 移动位置',()=>isTouch?'右半屏拖动：转动视角（也可开陀螺仪）':'移动鼠标转动视角',()=>'看左上角雷达，橙点是猎物。把准星对准猎物，'+(isTouch?'点“开火”':'按左键')+'射击',()=>isTouch?'点“武器”切换弓箭和陷阱':'按 1/2/3 切换猎枪、弓箭、陷阱',()=>'弓箭无声但会下坠，要抬高准星；陷阱能引来猎物。目标分数见左上角'];
+function tutStep(dt){if(tut>=5)return;const el=$('tip');if(lv>0)tut=5;
+ tmv+=Math.hypot(px-tpx,pz-tpz);tlk+=Math.abs(yaw-tpy)+Math.abs(pitch-tpp);tpx=px;tpz=pz;tpy=yaw;tpp=pitch;
+ if((tut===0&&tmv>6)||(tut===1&&tlk>1.5)||(tut===2&&tsh>0)||(tut===3&&tsw>0)){tut++;tt=0}
+ if(tut===4){tt+=dt;if(tt>9)tut=5}
+ if(tut>=5){el.style.display='none';try{localStorage.setItem('hunter-tut','1')}catch(e){}return}
+ el.textContent=TIPS[tut]();el.style.display='block'}
+function pause(){if(state!=='play')return;state='paused';jx=jy=0;for(const k in ptr)delete ptr[k];md=null;for(const k in keys)keys[k]=0;st.style.left='';st.style.bottom='';kn.style.transform='';setZoom(false);document.body.classList.add('paused');$('ps').style.display='flex';$('tip').style.display='none';if(document.exitPointerLock)document.exitPointerLock()}
+function resume(){if(state!=='paused')return;state='play';document.body.classList.remove('paused');$('ps').style.display='none';if(usedMouse){try{cv.requestPointerLock()}catch(e){}}}
+$('prs').onclick=resume;$('prt').onclick=()=>{document.body.classList.remove('paused');$('ps').style.display='none';start()};
+$('pa').addEventListener('pointerdown',e=>{e.preventDefault();pause()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause()});
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&usedMouse)pause()});
+// 更新
+function update(dt){
+ for(let i=animals.length-1;i>=0;i--){const a=animals[i],g=a.g;
+  if(a.dead){a.t+=dt;g.rotation.z=Math.min(a.t*5,1.45);g.position.y=Math.min(a.t*.8,.25);if(a.t>1.1){scene.remove(g);animals.splice(i,1);spawn()}continue}
+  const dxp=g.position.x-px,dzp=g.position.z-pz,dp=Math.hypot(dxp,dzp);let spd=0;if(a.alert>0)a.alert-=dt;
+  if((dp<(a.type==='bear'?5:10)||a.alert>0)&&state==='play'){a.tx=Math.max(-46,Math.min(46,g.position.x+dxp/dp*12));a.tz=Math.max(-46,Math.min(46,g.position.z+dzp/dp*12));a.wait=0;spd=a.sp*1.8}
+  else if(a.wait>0){a.wait-=dt}
+  else{const dx=a.tx-g.position.x,dz=a.tz-g.position.z;if(Math.hypot(dx,dz)<.6){a.wait=rnd(1,3.5);a.tx=Math.max(-46,Math.min(46,g.position.x+rnd(-14,14)));a.tz=Math.max(-46,Math.min(46,g.position.z+rnd(-14,14)));const T=traps.find(q=>Math.hypot(q.x-g.position.x,q.z-g.position.z)<28);if(T&&Math.random()<.65){a.tx=T.x;a.tz=T.z;a.wait=0}}else spd=a.sp*.5}
+  if(spd>0){const dx=a.tx-g.position.x,dz=a.tz-g.position.z,l=Math.hypot(dx,dz)||1;
+   const ry=Math.atan2(dx,dz);let d=ry-g.rotation.y;d=Math.atan2(Math.sin(d),Math.cos(d));g.rotation.y+=d*Math.min(1,dt*8);
+   g.position.x+=dx/l*spd*dt;g.position.z+=dz/l*spd*dt;a.ph+=dt*spd*3}
+  a.mv+=((spd>0?1:0)-a.mv)*Math.min(1,dt*8);a.legs.forEach((l,k)=>l.rotation.x=Math.sin(a.ph+(k%3?Math.PI:0))*.7*a.mv)}
+ for(let i=parts.length-1;i>=0;i--){const p=parts[i];p.life-=dt;p.v.y-=12*dt;p.position.addScaledVector(p.v,dt);if(p.life<=0||p.position.y<0){scene.remove(p);parts.splice(i,1)}}
+ if(state==='play'){
+  tleft-=dt;if(tleft<=0){tleft=0;hud();finish();return}
+  cd-=dt;if(reload>0){reload-=dt;if(reload<=0){reload=0;ammo=W[wi].mag}hud()}
+  let mx=(keys.KeyD||keys.ArrowRight?1:0)-(keys.KeyA||keys.ArrowLeft?1:0)+jx,mz=(keys.KeyW||keys.ArrowUp?1:0)-(keys.KeyS||keys.ArrowDown?1:0)-jy;
+  const l=Math.hypot(mx,mz);if(l>1){mx/=l;mz/=l}const sn=Math.sin(yaw),cs=Math.cos(yaw),sp=6;
+  px+=(mx*cs-mz*sn)*sp*dt;pz+=(-mx*sn-mz*cs)*sp*dt;
+  for(const t of trees){const dx=px-t.x,dz=pz-t.z,d=Math.hypot(dx,dz),m=t.r+.4;if(d<m){px=t.x+dx/d*m;pz=t.z+dz/d*m}}
+  px=Math.max(-47,Math.min(47,px));pz=Math.max(-47,Math.min(47,pz));
+  if(Math.floor(tleft*10)%10===0)hud();
+ }
+ recoil*=.85;frame(dt);cam.position.set(px,1.6+(l_bob=Math.sin(performance.now()/130)*.04*(Math.abs(jx)+Math.abs(jy)+(keys.KeyW||keys.KeyS||keys.KeyA||keys.KeyD?1:0)>0?1:0)),pz);
+ cam.rotation.set(pitch+recoil,yaw,0)}
+let l_bob=0,last=performance.now();
+function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.05);last=now;update(dt);renderer.render(scene,cam);if(snapReq){snapReq=false;shot()}}
+requestAnimationFrame(loop);
+</script></body></html>
