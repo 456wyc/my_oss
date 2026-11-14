@@ -9,7 +9,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%236366f1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='26' fill='url(%23g)'/%3E%3Cg fill='%23fff'%3E%3Crect x='22' y='22' width='25' height='25' rx='8' opacity='.95'/%3E%3Crect x='53' y='22' width='25' height='25' rx='8' opacity='.6'/%3E%3Crect x='22' y='53' width='25' height='25' rx='8' opacity='.6'/%3E%3Crect x='53' y='53' width='25' height='25' rx='8' opacity='.34'/%3E%3C/g%3E%3C/svg%3E" />
 <link rel="stylesheet" href="assets/css/style.css" />
 </head>
-<body>
+<body class="lab-page">
   <div class="aurora" aria-hidden="true"><span class="blob b2"></span><span class="blob b1"></span></div>
 
   <header class="site-header">
@@ -44,18 +44,23 @@
   </header>
 
   <main>
-    <section class="lp-top">
-      <div class="wrap lp-top-inner">
-        <input id="demoSearch" class="lp-input" type="search" data-i18n-ph="demos.search" placeholder="筛选 Demo…" autocomplete="off" />
-        <p class="lp-hint" id="demoCount"></p>
-      </div>
-      <div class="wrap" style="margin-top:-10px">
-        <p class="muted" data-i18n="demos.desc">不依赖下载安装，打开就是一个可以动手玩的交互演示。</p>
+    <section class="lab-hero">
+      <div class="wrap">
+        <p class="kicker" data-i18n="demos.kicker">DEMOS</p>
+        <h1 data-i18n="demos.title">实验场 · 一些能立刻跑起来的 Demo</h1>
+        <p class="lab-sub muted" data-i18n="demos.desc">不依赖下载安装，打开就是一个可以动手玩的交互演示。</p>
       </div>
     </section>
 
     <section class="wrap">
-      <div class="lp-grid" id="demoGrid"></div>
+      <div class="toolbar lab-toolbar">
+        <label class="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10.5 18a7.5 7.5 0 1 0 0-15 7.5 7.5 0 0 0 0 15Zm4.6-2.9L20 20"/></svg>
+          <input id="demoSearch" type="search" data-i18n-ph="demos.search" placeholder="筛选 Demo…" autocomplete="off" />
+        </label>
+        <p class="lab-count" id="demoCount"></p>
+      </div>
+      <div class="lp-grid lab-grid" id="demoGrid"></div>
       <p class="empty" id="demoEmpty" data-i18n="demos.empty" hidden>没有匹配的 Demo</p>
     </section>
   </main>
@@ -70,8 +75,12 @@
   <script src="data/demos.js"></script>
   <script src="assets/js/demos.js"></script>
   <script>
-    window.renderDemos({ grid: '#demoGrid', search: '#demoSearch', empty: '#demoEmpty' });
-    document.addEventListener('localechange', () => window.renderDemos({ grid: '#demoGrid', search: '#demoSearch', empty: '#demoEmpty' }));
+    window.initThemeToggle();
+    const renderDemosPage = () => window.renderDemos({
+      grid: '#demoGrid', search: '#demoSearch', empty: '#demoEmpty', count: '#demoCount'
+    });
+    renderDemosPage();
+    document.addEventListener('localechange', renderDemosPage);
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
   <script src="assets/js/stats.js"></script>

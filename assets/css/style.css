@@ -421,6 +421,33 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--surface-strong); border: 1px solid var(--border); color: var(--text-faint);
 }
 
+/* ============ 实验场（demos.html / 首页 #demos 板块） ============ */
+.lab-page { display: flex; flex-direction: column; min-height: 100dvh; }
+.lab-page main { flex: 1; }
+.lab-hero { padding: 56px 0 28px; }
+.lab-hero h1 {
+  margin: 8px 0 10px; font-size: clamp(26px, 3.6vw, 38px);
+  line-height: 1.25; letter-spacing: -0.02em;
+}
+.lab-sub { margin: 0; font-size: 14.5px; max-width: 64ch; }
+.lab-toolbar { margin-bottom: 20px; align-items: center; }
+.lab-toolbar .search { flex: 1 1 320px; max-width: 420px; }
+.lab-count { margin: 0 0 0 auto; font-size: 12.5px; color: var(--text-faint); white-space: nowrap; }
+.lab-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
+.lab-grid .lp-main { min-height: 188px; }
+.lab-grid .lp-info {
+  flex: 1; align-self: stretch; min-width: 0;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.lab-grid .lp-title { font-size: 16px; line-height: 1.35; }
+.lab-grid .lp-desc { -webkit-line-clamp: 3; line-height: 1.55; }
+.lab-grid .lp-tags { margin-top: auto; padding-top: 10px; }
+@media (max-width: 640px) {
+  .lab-hero { padding: 36px 0 22px; }
+  .lab-count { margin-left: 0; }
+  .lab-grid { grid-template-columns: 1fr; }
+}
+
 /* ============ Demo 查看器（demo.html） ============ */
 .demo-page { display: flex; flex-direction: column; height: 100dvh; }
 .demo-page main { padding: 0; flex: 1; display: flex; flex-direction: column; min-height: 0; }

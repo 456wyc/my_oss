@@ -24,10 +24,12 @@
     </div>`;
   };
 
-  window.renderDemos = ({ grid, search, empty } = {}) => {
+  window.renderDemos = ({ grid, search, empty, count } = {}) => {
     const gridEl = $(grid);
+    if (!gridEl) return;
     const searchEl = search ? $(search) : null;
     const emptyEl = empty ? $(empty) : null;
+    const countEl = count ? $(count) : null;
     const list = window.DEMOS || [];
 
     const render = (q = '') => {
@@ -37,10 +39,31 @@
       );
       gridEl.innerHTML = items.map(tileHTML).join('');
       if (emptyEl) emptyEl.hidden = items.length > 0;
+      if (countEl) countEl.textContent = t('demos.count', { n: items.length });
     };
 
     if (searchEl) searchEl.addEventListener('input', (e) => render(e.target.value));
     render(searchEl ? searchEl.value : '');
+  };
+
+  /* 仅 demos.html / demo.html 使用：这两页不加载 app.js，主题按钮需自行初始化 */
+  window.initThemeToggle = () => {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    let theme = localStorage.getItem('oss-theme') || (prefersLight ? 'light' : 'dark');
+    const apply = () => {
+      document.documentElement.dataset.theme = theme;
+      btn.textContent = theme === 'dark' ? '☾' : '☀';
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b0f1a' : '#f6f7fb');
+    };
+    apply();
+    btn.addEventListener('click', () => {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('oss-theme', theme);
+      apply();
+    });
   };
 
   /* ---------- demo.html 查看器：外壳 + iframe + 全屏 ---------- */
