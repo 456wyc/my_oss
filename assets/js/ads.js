@@ -1,12 +1,17 @@
-/* AdSense 展示广告单元，仅在「林间猎手 3D」未达标结算时展示。
-   广告只作展示，不参与关卡解锁判断（避免 AdSense 禁止的激励式流量）。
-   - 只在正式域名加载；本地 / 局域网 / file:// 预览不加载广告脚本，
-     但会在卡片里显示占位文字，便于本地预览结算卡片布局。
-   - 单元在页面生命周期只 push 一次；结算面板重写时把同一个 <ins> 移到新的 #adslot，
-     不重建单元、不重复请求广告。
-   - 广告交互不进入 Clarity 录屏（data-clarity-mask）。
-   - 发布商授权文件见仓库根目录 ads.txt。 */
+/* 「林间猎手 3D」未达标结算页广告位：Adsterra 300×250 横幅（zone 6200725）。
+   - 原 Google AdSense 已全部停用：脚本、单元与 ads.txt 授权均已移除。
+   - 广告代码放在同站独立页 assets/ads/banner.html，由 iframe 承载：
+     Adsterra 的 format:'iframe' 脚本需要在 HTML 解析期执行（内部可能使用
+     document.write），而结算面板是运行时用 innerHTML 动态生成的，直接插入
+     会清空整个游戏页面。iframe 是真实同站 URL，referrer / 域名校验正常，
+     且只在未达标结算时按需请求广告。
+   - 宽屏按原始 300×250 展示；窄屏按容器宽度等比缩小（完整可见、不裁切），
+     横竖屏切换时重新计算。
+   - 广告只作展示，不参与关卡解锁判断。
+   - 本地 / 局域网 / file:// 预览不请求广告，只显示占位文字。
+   - 广告交互不进入 Clarity 录屏（data-clarity-mask）。 */
 (function () {
+  var WIDTH = 300, HEIGHT = 250;
   var host = location.hostname;
   var local = location.protocol === 'file:' || !host ||
     host === 'localhost' || host === '127.0.0.1' || host === '0.0.0.0' ||
@@ -15,45 +20,50 @@
     /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
     /^169\.254\./.test(host) || /^198\.18\./.test(host);
 
-  if (local) {
-    window.showGameOverAd = function (slot) {
-      if (!slot) return;
-      slot.textContent = '广告位 · 本地预览不加载';
-      slot.style.display = 'flex';
-      slot.style.alignItems = 'center';
-      slot.style.justifyContent = 'center';
-      slot.style.color = 'rgba(255,248,230,.6)';
-      slot.style.fontSize = '13px';
-    };
-    return;
+  var base = (document.currentScript && document.currentScript.src) || location.href;
+  var FRAME_SRC = new URL('../ads/banner.html', base).href;
+  var wrap = null, frame = null, slotNow = null;
+
+  function placeholder(slot, text) {
+    slot.textContent = text;
+    slot.style.display = 'flex';
+    slot.style.alignItems = 'center';
+    slot.style.justifyContent = 'center';
+    slot.style.color = 'rgba(255,248,230,.6)';
+    slot.style.fontSize = '13px';
   }
 
-  var CLIENT = 'ca-pub-7931165825358173';
-  var SLOT = '4743319427';
-  var box = null, pushed = false;
-
-  var s = document.createElement('script');
-  s.async = true;
-  s.crossOrigin = 'anonymous';
-  s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + CLIENT;
-  document.head.appendChild(s);
+  function fit() {
+    if (!wrap || !slotNow) return;
+    var avail = slotNow.clientWidth;
+    var scale = avail > 0 ? Math.min(1, avail / WIDTH) : 1;
+    wrap.style.width = (WIDTH * scale) + 'px';
+    wrap.style.height = (HEIGHT * scale) + 'px';
+    frame.style.transformOrigin = 'top left';
+    frame.style.transform = 'scale(' + scale + ')';
+  }
 
   window.showGameOverAd = function (slot) {
     if (!slot) return;
-    if (!box) {
-      box = document.createElement('ins');
-      box.className = 'adsbygoogle';
-      box.setAttribute('data-ad-client', CLIENT);
-      box.setAttribute('data-ad-slot', SLOT);
-      box.setAttribute('data-ad-format', 'auto');
-      box.setAttribute('data-full-width-responsive', 'true');
-      box.setAttribute('data-clarity-mask', '');
-      box.style.display = 'block';
-      box.style.width = '100%';
+    slot.setAttribute('data-clarity-mask', '');
+    if (local) { placeholder(slot, '广告位 · 本地预览不加载'); return; }
+    slotNow = slot;
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.style.cssText = 'position:relative;margin:0 auto;overflow:hidden;flex:none';
+      frame = document.createElement('iframe');
+      frame.src = FRAME_SRC;
+      frame.title = '广告';
+      frame.width = String(WIDTH);
+      frame.height = String(HEIGHT);
+      frame.setAttribute('scrolling', 'no');
+      frame.setAttribute('frameborder', '0');
+      frame.style.cssText = 'display:block;width:' + WIDTH + 'px;height:' + HEIGHT + 'px;border:0;background:transparent';
+      wrap.appendChild(frame);
     }
-    slot.appendChild(box);
-    if (pushed) return;
-    pushed = true;
-    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    slot.appendChild(wrap);
+    fit();
   };
+
+  window.addEventListener('resize', fit);
 })();
