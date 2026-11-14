@@ -1,6 +1,6 @@
 /* 自动生成，请勿手改；执行 npm run sync 更新 */
 window.PROJECTS = {
-  "generatedAt": "2026-11-11T22:02:18.623Z",
+  "generatedAt": "2026-11-14T10:38:42.861Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
@@ -516,18 +516,18 @@ window.PROJECTS = {
       "languages": [
         {
           "name": "JavaScript",
-          "value": 164591,
-          "percent": 73.2
+          "value": 236705,
+          "percent": 73.9
         },
         {
           "name": "CSS",
-          "value": 44256,
-          "percent": 19.7
+          "value": 63712,
+          "percent": 19.9
         },
         {
           "name": "HTML",
-          "value": 15973,
-          "percent": 7.1
+          "value": 19790,
+          "percent": 6.2
         }
       ],
       "stars": 0,
@@ -538,8 +538,8 @@ window.PROJECTS = {
       "topics": [],
       "archived": false,
       "createdAt": "2026-11-11T20:31:30Z",
-      "updatedAt": "2026-11-11T21:53:55Z",
-      "pushedAt": "2026-11-11T21:34:19Z",
+      "updatedAt": "2026-11-12T15:20:04Z",
+      "pushedAt": "2026-11-13T04:48:00Z",
       "defaultBranch": "main",
       "hasPages": true,
       "category": "AI 应用",
