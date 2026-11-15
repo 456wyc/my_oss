@@ -41,5 +41,25 @@ window.DEMOS = [
     accent: ['#6366f1', '#22d3ee'],
     tags: ['Three.js', 'WebGL', '赛车', '竞速', '触屏'],
     featured: true
+  },
+  {
+    id: 'urban-siege-deepseek',
+    file: 'demos/城市反恐 · URBAN SIEGE.html',
+    title: '城市反恐 · URBAN SIEGE（DeepSeek 版）',
+    desc: '由 DeepSeek 生成的第一人称反恐射击：程序化城市街区与掩体、雷达小地图、Bloom 辉光与 PBR 环境光；任务是清除区域内 14 名武装分子，含敌人 AI、后坐力与换弹动画、命中率与用时统计。WASD 移动、鼠标瞄准、Shift 冲刺、Space 跳跃。',
+    category: '3D 游戏',
+    accent: ['#ff3b30', '#ff6b5e'],
+    tags: ['Three.js', 'WebGL', 'FPS', '反恐', 'DeepSeek'],
+    featured: true
+  },
+  {
+    id: 'urban-strike-claude',
+    file: 'demos/URBAN STRIKE · 城市反恐.html',
+    title: 'URBAN STRIKE · 城市反恐（Claude 版）',
+    desc: '由 Claude 生成的第一人称反恐射击：Three.js 场景里的波次生存玩法，敌人逐波刷新、爆头双倍伤害、APC 自动炮塔支援与曳光弹反馈；WASD 移动、Shift 冲刺、R 换弹，含生命值 / 弹药 HUD 与失败重开。',
+    category: '3D 游戏',
+    accent: ['#22e5ff', '#ff4433'],
+    tags: ['Three.js', 'WebGL', 'FPS', '反恐', 'Claude'],
+    featured: true
   }
 ];

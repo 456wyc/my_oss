@@ -1,0 +1,143 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><title>URBAN STRIKE · 城市反恐</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{color-scheme:dark;--ac:#2ef;--bad:#f43}
+html,body{margin:0;height:100%;background:#05080c;overflow:hidden;font-family:system-ui,sans-serif;color:#cfe}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;text-shadow:0 0 8px var(--ac);font-weight:700}
+#hud div{position:absolute}
+#hp{left:24px;bottom:24px;width:260px}#hp i{display:block;height:10px;background:linear-gradient(90deg,#2ef,#4f8);width:100%;box-shadow:0 0 10px #2ef}
+#hp b{display:block;border:1px solid #2ef6;padding:2px;margin-top:4px}
+#ammo{right:28px;bottom:24px;font-size:38px}#ammo small{font-size:16px;opacity:.7}
+#top{top:16px;left:0;right:0;text-align:center;letter-spacing:3px}
+#xh{left:50%;top:50%;width:6px;height:6px;margin:-3px;border:1px solid #fff;border-radius:50%;transition:.08s}
+#xh.hit{border-color:#f43;transform:scale(3)}
+#dmg{inset:0;box-shadow:inset 0 0 140px #f00;opacity:0;transition:opacity .3s}
+#ov{position:fixed;inset:0;background:#05080ccc;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;padding:20px}
+#ov h1{font-size:clamp(28px,6vw,64px);margin:0;letter-spacing:6px;color:var(--ac);text-shadow:0 0 20px var(--ac)}
+#ov p{max-width:560px;line-height:1.8;opacity:.9}
+</style></head><body>
+<div id="hud"><div id="top"></div><div id="xh"></div><div id="dmg"></div>
+<div id="hp"><span>ARMOR</span><b><i id="hpb"></i></b></div><div id="ammo"></div></div>
+<div id="ov"><h1>URBAN STRIKE</h1><p>夜间城市反恐作战。肃清恐怖分子、机器狗与武装无人机，友军装甲车会提供炮火支援。<br>
+<b>WASD</b> 移动 · <b>Shift</b> 冲刺 · <b>鼠标</b> 瞄准/左键射击 · <b>R</b> 换弹 · 爆头双倍伤害<br>点击开始</p></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=id=>document.getElementById(id),rnd=(a,b)=>a+Math.random()*(b-a),cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2));
+R.shadowMap.enabled=true;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.1;R.outputEncoding=THREE.sRGBEncoding;
+document.body.prepend(R.domElement);
+const S=new THREE.Scene();S.background=new THREE.Color(0x0b1724);S.fog=new THREE.FogExp2(0x0b1724,.011);
+const C=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,400);S.add(C);
+S.add(new THREE.HemisphereLight(0x5b7fb8,0x1a1612,.75));
+const moon=new THREE.DirectionalLight(0xa8c4ff,.9);moon.castShadow=true;moon.shadow.mapSize.set(2048,2048);
+Object.assign(moon.shadow.camera,{left:-70,right:70,top:70,bottom:-70,far:200});S.add(moon,moon.target);
+// ---------- procedural PBR textures ----------
+function cv(w,h,f){const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);return c}
+function T(c,rx=1,ry=1,enc=true){const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(rx,ry);t.anisotropy=8;if(enc)t.encoding=THREE.sRGBEncoding;return t}
+function grain(g,w,h,n,a){for(let i=0;i<n;i++){const v=Math.random()*255|0;g.fillStyle=`rgba(${v},${v},${v},${a})`;g.fillRect(Math.random()*w,Math.random()*h,rnd(1,3),rnd(1,3))}}
+const asC=cv(512,512,(g,w,h)=>{g.fillStyle='#303236';g.fillRect(0,0,w,h);grain(g,w,h,30000,.18);g.strokeStyle='#1118';for(let i=0;i<14;i++){g.beginPath();let x=rnd(0,w),y=rnd(0,h);g.moveTo(x,y);for(let k=0;k<6;k++)g.lineTo(x+=rnd(-40,40),y+=rnd(-40,40));g.stroke()}});
+const asM=new THREE.MeshStandardMaterial({map:T(asC,60,60),bumpMap:T(asC,60,60,false),bumpScale:2,roughness:.9});
+const lit=[];for(let i=0;i<24;i++)lit.push(Math.random()<.35);
+const fcC=cv(512,512,(g,w,h)=>{g.fillStyle='#6d7076';g.fillRect(0,0,w,h);grain(g,w,h,26000,.2);for(let r=0;r<6;r++)for(let c=0;c<4;c++){const x=c*128+22,y=r*85+14;g.fillStyle=lit[r*4+c]?'#ffd98a':'#0d1822';g.fillRect(x,y,84,54);g.fillStyle='#222';g.fillRect(x-4,y+54,92,6)}});
+const fcE=cv(512,512,(g,w,h)=>{g.fillStyle='#000';g.fillRect(0,0,w,h);for(let r=0;r<6;r++)for(let c=0;c<4;c++)if(lit[r*4+c]){g.fillStyle='#ffb050';g.fillRect(c*128+22,r*85+14,84,54)}});
+function facade(w,h){const rx=w/14,ry=h/18;const m=new THREE.MeshStandardMaterial({map:T(fcC,rx,ry),bumpMap:T(fcC,rx,ry,false),bumpScale:1.5,emissive:0xffffff,emissiveMap:T(fcE,rx,ry),emissiveIntensity:.9,roughness:.75,metalness:.1});return m}
+const cnC=cv(256,256,(g,w,h)=>{g.fillStyle='#8a8a84';g.fillRect(0,0,w,h);grain(g,w,h,9000,.25)});
+const conc=new THREE.MeshStandardMaterial({map:T(cnC,2,2),bumpMap:T(cnC,2,2,false),bumpScale:2,roughness:.95});
+const mtC=cv(256,256,(g,w,h)=>{g.fillStyle='#4b5560';g.fillRect(0,0,w,h);for(let i=0;i<w;i+=2){g.fillStyle=`rgba(255,255,255,${Math.random()*.12})`;g.fillRect(i,0,1,h)}g.strokeStyle='#0006';g.strokeRect(4,4,w-8,h-8)});
+const steel=new THREE.MeshStandardMaterial({map:T(mtC),roughness:.4,metalness:.85});
+const camo=new THREE.MeshStandardMaterial({map:T(cv(256,256,(g,w,h)=>{g.fillStyle='#3a4a34';g.fillRect(0,0,w,h);for(let i=0;i<40;i++){g.fillStyle=['#2b3526','#4d5a40','#222a1e'][i%3];g.beginPath();g.ellipse(rnd(0,w),rnd(0,h),rnd(12,40),rnd(8,24),rnd(0,3),0,7);g.fill()}grain(g,w,h,5000,.1)}),2,1),roughness:.7,metalness:.3});
+const M=(c,e,m=.3,r=.5)=>new THREE.MeshStandardMaterial({color:c,emissive:e||0,roughness:r,metalness:m});
+const black=M(0x15181c,0,.7,.35),vest=M(0x23282e,0,.2,.8),glowR=M(0x300,0xff2200,0,.5);
+// ---------- world ----------
+const solids=[],cols=[];
+function box(x,z,w,d,h,mat,y0=0,col=true,sh=true){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y0+h/2,z);m.castShadow=m.receiveShadow=sh;S.add(m);solids.push(m);if(col)cols.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2});return m}
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(500,500),asM);ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;S.add(ground);
+const lineM=new THREE.MeshBasicMaterial({color:0xd8b020});
+for(let k=-4;k<=3;k++){for(const [w,d] of [[.25,500],[500,.25]]){const l=new THREE.Mesh(new THREE.PlaneGeometry(w,d),lineM);l.rotation.x=-Math.PI/2;l.position.set(d==500?k*50+50:0,.03,w==500?k*50+50:0);if(d==500)l.position.x=k*50+50;S.add(l)}}
+const neon=[0x00ffff,0xff2d95,0x7cff3a];
+for(let i=-4;i<4;i++)for(let j=-4;j<4;j++){const cx=i*50+25,cz=j*50+25,h=rnd(18,70),w=rnd(28,33);
+ const b=box(cx,cz,w,w,h,[facade(w,h),facade(w,h),conc,conc,facade(w,h),facade(w,h)]);
+ const n=new THREE.Mesh(new THREE.BoxGeometry(w+.4,.8,.8),new THREE.MeshBasicMaterial({color:neon[(i+j+8)%3]}));n.position.set(cx,h*rnd(.3,.8),cz+w/2);S.add(n)}
+for(let i=0;i<46;i++){const x=rnd(-170,170),z=rnd(-170,170);if(Math.hypot(x,z)<10)continue;
+ const t=i%3;if(t==0)box(x,z,rnd(5,7),1.2,1.1,conc,0,true);else if(t==1)box(x,z,2,2,2,steel,0,true);else{box(x,z,4.4,1.9,.9,M(rnd(.1,.6)*0xffffff|0,0,.8,.3),.4,true);box(x,z,2.4,1.8,.7,M(0x1a2430,0,.9,.1),1.1,false)}}
+// friendly armored vehicle with auto-turret
+const apc=new THREE.Group();apc.position.set(9,0,-14);S.add(apc);
+const ab=new THREE.Mesh(new THREE.BoxGeometry(3.4,1.6,7),camo);ab.position.y=1.5;apc.add(ab);
+for(const sx of[-1.8,1.8])for(const sz of[-2.4,-.8,.8,2.4]){const w=new THREE.Mesh(new THREE.CylinderGeometry(.7,.7,.5,16),black);w.rotation.z=Math.PI/2;w.position.set(sx,.7,sz);apc.add(w)}
+const tur=new THREE.Group();tur.position.set(0,2.7,-.3);apc.add(tur);
+tur.add(new THREE.Mesh(new THREE.BoxGeometry(1.7,.9,2),steel));const brl=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,3,8),black);brl.rotation.x=Math.PI/2;brl.position.set(0,.1,-2);tur.add(brl);
+const apcL=new THREE.Mesh(new THREE.BoxGeometry(.4,.2,.1),new THREE.MeshBasicMaterial({color:0x00ffff}));apcL.position.set(0,1.6,-3.55);apc.add(apcL);
+apc.traverse(o=>{if(o.isMesh)o.castShadow=true});cols.push({x0:7.2,x1:10.8,z0:-17.5,z1:-10.5});solids.push(ab);
+// ---------- player / weapon ----------
+const P={pos:new THREE.Vector3(0,0,0),yaw:0,pitch:0,hp:100,mag:30,res:120,rel:0,cd:0,kills:0,bob:0};
+const gun=new THREE.Group();gun.position.set(.26,-.24,-.5);C.add(gun);
+gun.add(new THREE.Mesh(new THREE.BoxGeometry(.07,.12,.5),black));
+const gb=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,.35,8),steel);gb.rotation.x=Math.PI/2;gb.position.set(0,.03,-.4);gun.add(gb);
+const sight=new THREE.Mesh(new THREE.BoxGeometry(.05,.05,.1),new THREE.MeshBasicMaterial({color:0xff2200}));sight.position.set(0,.09,-.05);gun.add(sight);
+const mag=new THREE.Mesh(new THREE.BoxGeometry(.05,.16,.07),steel);mag.position.set(0,-.12,.02);gun.add(mag);
+const flash=new THREE.PointLight(0xffa040,0,12);flash.position.set(0,.03,-.8);gun.add(flash);
+// ---------- enemies ----------
+const E=[],tr=[];let wave=0,spawnT=0;
+function mk(parts){const g=new THREE.Group();for(const [geo,mat,x,y,z,tag] of parts){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.castShadow=true;if(tag)m.userData.tag=tag;g.add(m)}return g}
+const B=(x,y,z)=>new THREE.BoxGeometry(x,y,z);
+function spawn(type){let p;for(let t=0;t<30;t++){const a=rnd(0,6.28),d=rnd(45,75);p=new THREE.Vector3(cl(P.pos.x+Math.cos(a)*d,-190,190),0,cl(P.pos.z+Math.sin(a)*d,-190,190));if(!cols.some(b=>p.x>b.x0-2&&p.x<b.x1+2&&p.z>b.z0-2&&p.z<b.z1+2))break}
+ let g,hp,spd,r=.6;
+ if(type=='s'){g=mk([[B(.25,.8,.28),vest,-.15,.4,0],[B(.25,.8,.28),vest,.15,.4,0],[B(.6,.75,.35),M(0x5a1a1a,0,.1,.8),0,1.2,0],[B(.3,.3,.3),M(0xc89a7a,0,0,.7),0,1.75,0,'head'],[B(.34,.14,.34),black,0,1.93,0],[B(.08,.1,.7),black,.3,1.25,-.4]]);hp=60;spd=3.2}
+ else if(type=='d'){g=mk([[B(.5,.4,1.1),steel,0,.75,0],[B(.25,.3,.4),black,0,.95,-.65,'head'],[B(.08,.08,.05),glowR,0,.98,-.86],...[[-.2,-.4],[.2,-.4],[-.2,.4],[.2,.4]].map(([x,z])=>[B(.1,.6,.12),black,x,.3,z])]);hp=40;spd=9;r=.7}
+ else{g=mk([[B(.7,.25,.7),M(0x222831,0,.8,.3),0,0,0,'head'],[B(.2,.1,.2),glowR,0,-.2,0],...[[-1,-1],[1,-1],[-1,1],[1,1]].map(([x,z])=>[new THREE.CylinderGeometry(.45,.45,.04,12),M(0x888899,0,.5,.4),x*.6,.15,z*.6])]);hp=30;spd=6;r=.6;p.y=rnd(7,12)}
+ g.position.copy(p);S.add(g);const e={g,type,hp,spd,r,cd:rnd(1,2.5),ph:rnd(0,6),ang:rnd(0,6.28)};g.traverse(o=>{if(o.isMesh)o.userData.e=e});E.push(e)}
+function startWave(){wave++;P.hp=Math.min(100,P.hp+30);P.res+=60;const n=4+wave*2;for(let i=0;i<n;i++)spawn('s');if(wave>1)for(let i=0;i<wave;i++)spawn('d');if(wave>2)for(let i=0;i<wave-1;i++)spawn('x');
+ const t=$('top');t.textContent='— 第 '+wave+' 波 —';setTimeout(upd,2000)}
+// ---------- combat ----------
+const RC=new THREE.Raycaster();
+function tracer(a,b,col){const l=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),new THREE.LineBasicMaterial({color:col,transparent:true}));S.add(l);tr.push({l,t:.07})}
+function hit(e,dmg,hd){e.hp-=dmg*(hd?2:1);$('xh').classList.add('hit');setTimeout(()=>$('xh').classList.remove('hit'),90);
+ if(e.hp<=0){S.remove(e.g);E.splice(E.indexOf(e),1);P.kills++;sfx(80,.2,'sawtooth',.15)}}
+function los(a,b){const d=b.clone().sub(a),L=d.length();RC.set(a,d.normalize());RC.far=L;const h=RC.intersectObjects(solids)[0];return !h}
+function shoot(){if(P.cd>0||P.rel>0)return;if(P.mag<=0){reload();return}P.mag--;P.cd=.095;sfx(160,.06,'square',.12);gun.position.z=-.42;flash.intensity=4;P.pitch+=.004;
+ RC.setFromCamera({x:rnd(-.004,.004),y:rnd(-.004,.004)},C);RC.far=300;
+ const h=RC.intersectObjects([...solids,...E.map(e=>e.g)],true)[0];const mz=gun.localToWorld(new THREE.Vector3(0,.03,-.6));
+ if(h){tracer(mz,h.point,0x66ffff);const e=h.object.userData.e;if(e)hit(e,25,h.object.userData.tag=='head')}}
+function reload(){if(P.rel>0||P.mag==30||P.res<=0)return;P.rel=1.4;sfx(90,.3,'triangle',.1)}
+let ac;function sfx(f,d,t,v){try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.setValueAtTime(f,ac.currentTime);o.frequency.exponentialRampToValueAtTime(30,ac.currentTime+d);g.gain.setValueAtTime(v,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.connect(g).connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function hurt(n){P.hp-=n;$('dmg').style.opacity=1;setTimeout(()=>$('dmg').style.opacity=0,150);sfx(60,.15,'sawtooth',.2);if(P.hp<=0){P.hp=0;dead=true;document.exitPointerLock();$('ov').style.display='flex';$('ov').innerHTML='<h1 style="color:#f43">任务失败</h1><p>坚持到第 '+wave+' 波，击杀 '+P.kills+'<br>点击重新开始</p>';$('ov').onclick=()=>location.reload()}}
+function push(p,r){for(const b of cols){const cx=cl(p.x,b.x0,b.x1),cz=cl(p.z,b.z0,b.z1),dx=p.x-cx,dz=p.z-cz,d=Math.hypot(dx,dz);if(d<r){if(d>0){p.x+=dx/d*(r-d);p.z+=dz/d*(r-d)}else p.x=b.x0-r}}p.x=cl(p.x,-195,195);p.z=cl(p.z,-195,195)}
+// ---------- input / loop ----------
+const K={};let dead=false,run=false,fire=false;
+addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='KeyR')reload()});addEventListener('keyup',e=>K[e.code]=0);
+addEventListener('mousedown',e=>{if(run&&e.button==0)fire=true});addEventListener('mouseup',()=>fire=false);
+addEventListener('mousemove',e=>{if(!run)return;P.yaw-=e.movementX*.0022;P.pitch=cl(P.pitch-e.movementY*.0022,-1.4,1.4)});
+$('ov').onclick=()=>{R.domElement.requestPointerLock();$('ov').style.display='none';run=true;if(!wave)startWave()};
+document.addEventListener('pointerlockchange',()=>{if(!document.pointerLockElement&&!dead){run=false;fire=false;$('ov').style.display='flex'}});
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix()});
+function upd(){$('top').textContent='第 '+wave+' 波  ·  敌人 '+E.length+'  ·  击杀 '+P.kills;$('hpb').style.width=P.hp+'%';$('ammo').innerHTML=(P.rel>0?'换弹中':P.mag)+' <small>/ '+P.res+'</small>'}
+const clk=new THREE.Clock();let aT=0,uT=0;
+function tick(){requestAnimationFrame(tick);const dt=Math.min(clk.getDelta(),.05),t=clk.elapsedTime;
+ if(run&&!dead){
+  const sp=(K.ShiftLeft?9:5.5),f=(K.KeyW?1:0)-(K.KeyS?1:0),s=(K.KeyD?1:0)-(K.KeyA?1:0);
+  P.pos.x+=(-Math.sin(P.yaw)*f+Math.cos(P.yaw)*s)*sp*dt;P.pos.z+=(-Math.cos(P.yaw)*f-Math.sin(P.yaw)*s)*sp*dt;push(P.pos,.5);
+  if(f||s)P.bob+=dt*sp*1.6;P.cd-=dt;if(fire)shoot();
+  if(P.rel>0){P.rel-=dt;if(P.rel<=0){const n=Math.min(30-P.mag,P.res);P.mag+=n;P.res-=n}}}
+ C.position.set(P.pos.x,1.7+Math.sin(P.bob)*.05,P.pos.z);C.rotation.set(P.pitch,P.yaw,0,'YXZ');
+ gun.position.z+=(-.5-gun.position.z)*10*dt;gun.position.y=-.24+Math.sin(P.bob*.5)*.01;flash.intensity*=.5;
+ moon.position.set(P.pos.x-40,90,P.pos.z+30);moon.target.position.copy(P.pos);
+ // enemies
+ const eye=C.position;
+ for(const e of E){const g=e.g,d=new THREE.Vector3(eye.x-g.position.x,0,eye.z-g.position.z),L=d.length();d.normalize();
+  g.rotation.y=Math.atan2(d.x,d.z)+(e.type=='d'?Math.PI:Math.PI);
+  if(e.type=='s'){g.rotation.y=Math.atan2(d.x,d.z);const m=L>30?1:(L<18?-.6:0);e.ang+=dt;g.position.x+=(d.x*m+(-d.z)*Math.sin(e.ang)*.5)*e.spd*dt;g.position.z+=(d.z*m+d.x*Math.sin(e.ang)*.5)*e.spd*dt;g.position.y=Math.abs(Math.sin(t*8+e.ph))*.05}
+  else if(e.type=='d'){g.rotation.y=Math.atan2(d.x,d.z)+Math.PI;g.position.x+=d.x*e.spd*dt;g.position.z+=d.z*e.spd*dt;g.position.y=Math.abs(Math.sin(t*14+e.ph))*.12;if(L<2){e.cd-=dt;if(e.cd<=0){e.cd=.8;hurt(10)}}}
+  else{e.ang+=dt*.6;const tx=eye.x+Math.cos(e.ang+e.ph)*20,tz=eye.z+Math.sin(e.ang+e.ph)*20,dx=tx-g.position.x,dz=tz-g.position.z,dl=Math.hypot(dx,dz)||1;g.position.x+=dx/dl*e.spd*dt;g.position.z+=dz/dl*e.spd*dt;g.position.y+=(9+Math.sin(t+e.ph)*2-g.position.y)*dt;g.rotation.y+=dt*2;g.children.forEach((c,i)=>{if(i>1)c.rotation.y=t*40})}
+  if(e.type!='d'){e.cd-=dt;if(e.cd<=0&&L<50&&!dead){e.cd=e.type=='s'?rnd(.9,1.6):rnd(1.2,2);const o=g.position.clone();o.y+=e.type=='s'?1.3:0;
+   if(los(o,eye)){tracer(o,eye.clone().add(new THREE.Vector3(rnd(-.4,.4),rnd(-.4,.4),rnd(-.4,.4))),0xff6020);if(Math.random()<.45-L/150)hurt(e.type=='s'?8:6)}}}
+  if(e.type!='x')push(g.position,e.r)}
+ // APC turret
+ let best=null,bd=70;for(const e of E){const d=e.g.position.distanceTo(apc.position);if(d<bd){bd=d;best=e}}
+ if(best){const tp=best.g.position;tur.rotation.y=Math.atan2(tp.x-apc.position.x,tp.z-apc.position.z)+Math.PI;aT-=dt;if(aT<=0){aT=.35;const o=apc.position.clone().add(new THREE.Vector3(0,3,0));if(los(o,tp.clone().add(new THREE.Vector3(0,1,0)))){tracer(o,tp.clone().add(new THREE.Vector3(0,1,0)),0x00ffff);hit(best,12,false)}}}
+ for(let i=tr.length-1;i>=0;i--){const q=tr[i];q.t-=dt;q.l.material.opacity=q.t/.07;if(q.t<=0){S.remove(q.l);tr.splice(i,1)}}
+ if(wave&&!E.length&&!dead&&!spawnT){spawnT=1;setTimeout(()=>{spawnT=0;startWave()},3000);$('top').textContent='波次肃清 · 补给已到位'}
+ uT-=dt;if(uT<=0){uT=.2;if(E.length)upd();else if(!spawnT)upd()}
+ R.render(S,C)}
+tick();
+</script><script src="../assets/js/stats.js"></script></body></html>
