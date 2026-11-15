@@ -31,5 +31,15 @@ window.DEMOS = [
     accent: ['#3ee6ff', '#ff4fd8'],
     tags: ['Three.js', 'WebGL', '赛车', '竞速'],
     featured: true
+  },
+  {
+    id: 'neon-grid-racer-v2',
+    file: 'demos/Neon Grid · 城市赛车v2.html',
+    title: 'Neon Grid · 城市赛车 v2',
+    desc: '霓虹都市 3D 赛车增强版：新增小地图与路线导航、车流与行人、远处山地与海岸地形、SSAO/SSR 与水面反射；移动端提供虚拟摇杆和油门 / 刹车 / 氮气 / 手刹触控按钮，支持横屏提示与一键全屏。',
+    category: '3D 游戏',
+    accent: ['#6366f1', '#22d3ee'],
+    tags: ['Three.js', 'WebGL', '赛车', '竞速', '触屏'],
+    featured: true
   }
 ];
