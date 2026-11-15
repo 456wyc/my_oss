@@ -61,5 +61,15 @@ window.DEMOS = [
     accent: ['#22e5ff', '#ff4433'],
     tags: ['Three.js', 'WebGL', 'FPS', '反恐', 'Claude'],
     featured: true
+  },
+  {
+    id: 'drone-flight-trainer',
+    file: 'demos/无人机 3D 飞行训练模拟器.html',
+    title: '无人机 3D 飞行训练模拟器',
+    desc: '基于 Three.js 的四旋翼飞行训练：定点悬停、穿越门环、精准降落、方形航线、8 字绕桩、楼顶停机坪等 9 个科目，以及带三星计时评级的 9 关闯关模式；含 Angle / Acro 飞行模式、风力、电量与坠机判定，支持跟随 / FPV 视角、拍照相册与地图。可用键盘或手柄操作，移动端自动切换双虚拟摇杆。',
+    category: '3D 游戏',
+    accent: ['#2f6bff', '#8fd3ff'],
+    tags: ['Three.js', 'WebGL', '无人机', '模拟', '飞行'],
+    featured: true
   }
 ];
