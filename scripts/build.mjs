@@ -32,6 +32,7 @@ for (const name of await readdir(root)) {
   if (name.endsWith('.html')) await cp(join(root, name), join(dist, name));
 }
 await writeFile(join(dist, '.nojekyll'), '');
+await cp(join(root, 'ads.txt'), join(dist, 'ads.txt'));
 
 const files = await walk(dist);
 
