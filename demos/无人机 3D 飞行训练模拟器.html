@@ -58,6 +58,11 @@ html,body{overscroll-behavior:none}*{-webkit-tap-highlight-color:transparent}
 #rot{display:none;position:fixed;left:50%;bottom:150px;transform:translateX(-50%);z-index:6;background:rgba(255,170,50,.92);color:#000;padding:6px 12px;border-radius:14px;font-size:12px;pointer-events:none}
 @media(orientation:portrait){.tc #rot{display:block}}
 @media(max-width:520px){#lv .lg,#gal .gg{grid-template-columns:repeat(2,1fr)}}
+#cm,#tb{width:max-content;max-width:94vw}#msg{width:max-content}
+.tc #m.open{display:grid;grid-template-columns:1fr 1fr;gap:6px;left:50%;transform:translateX(-50%);top:54px;width:min(88vw,460px);max-width:none;max-height:calc(100vh - 66px);max-height:calc(100dvh - 66px);overflow-y:auto;z-index:15;font-size:13px}
+.tc #m.open button{margin:0}
+.tc #m.open b,.tc #m.open #cb,.tc #m.open #goal{grid-column:1/-1}
+.mopen .js{display:none!important}
 </style></head><body>
 <div class="p" id="m"><b>飞行训练</b>
 <button>1 · 定点悬停</button><button>2 · 穿越门环</button><button>3 · 精准降落</button><button>4 · 自由飞行</button><button>5 · 方形航线</button><button>6 · 8字绕桩</button><button>7 · 高度阶梯</button><button>8 · 原地360°旋转</button><button>9 · 楼顶停机坪降落</button><button>10 · 投放训练</button><button>11 · 航拍任务</button><div id="cb">🏆 闯关模式（L）</div>
@@ -209,8 +214,9 @@ document.addEventListener('fullscreenchange',()=>{if(document.fullscreenElement)
 function toggleHUD(){document.body.classList.toggle('nohud')}
 sys.children[0].onclick=toggleFS;sys.children[1].onclick=toggleHUD;
 function sa(s){const d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding-'+s+':env(safe-area-inset-'+s+',0px)';document.body.appendChild(d);const v=parseFloat(getComputedStyle(d)['padding'+s[0].toUpperCase()+s.slice(1)])||0;d.remove();return v}
-const overlayOpen=()=>lv.style.display=='block'||gal.style.display=='block'||big.style.display=='block';
-document.addEventListener('pointerdown',e=>{if(overlayOpen()&&!e.target.closest('#lv,#gal,#big,#cb,#cm')){lv.style.display=gal.style.display=big.style.display='none';e.stopPropagation()}},true);
+function closeM(){$('m').classList.remove('open');document.body.classList.remove('mopen')}
+const overlayOpen=()=>lv.style.display=='block'||gal.style.display=='block'||big.style.display=='block'||$('m').classList.contains('open');
+document.addEventListener('pointerdown',e=>{if(overlayOpen()&&!e.target.closest('#lv,#gal,#big,#m,#cm,#tb')){lv.style.display=gal.style.display=big.style.display='none';closeM();e.stopPropagation()}},true);
 addEventListener('contextmenu',e=>{if(touchUI&&!e.target.closest('#big,#gal'))e.preventDefault()});
 const gs=()=>M.g[M.k].n.dot(p.clone().sub(M.g[M.k].c));
 function colG(){M.g.forEach((g,j)=>g.m.material.color.set(j<M.k?0x666666:j==M.k?0x33ff99:0xff9d2e))}
@@ -249,13 +255,13 @@ addEventListener('keydown',e=>{K[e.code]=1;if(e.code=='KeyC'){fpv=!fpv;cam.fov=f
  if(/^Digit[1-9]$/.test(e.code)){camp=-1;start(+e.code[5]-1)}if(e.code.startsWith('Arrow')||e.code=='Space')e.preventDefault()});
 addEventListener('keyup',e=>K[e.code]=0);
 addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()});
-document.querySelectorAll('#m button').forEach((b,i)=>b.onclick=()=>{camp=-1;start(i);b.blur()});$('cb').onclick=()=>showLV();
+document.querySelectorAll('#m button').forEach((b,i)=>b.onclick=()=>{camp=-1;start(i);b.blur();closeM()});$('cb').onclick=()=>{closeM();showLV()};
 // ---- 触屏：浮动双摇杆 ----
 const TV={L:[0,0],R:[0,0]},st={};
 let touchUI=touch;{document.body.classList.toggle('tc',touch);
  const tb=document.createElement('div');tb.id='tb';tb.innerHTML='<button>任务</button><button>视角</button><button>风力</button><button>模式</button><button>重来</button>';document.body.appendChild(tb);
  const bs=tb.children,fire=c=>dispatchEvent(new KeyboardEvent('keydown',{code:c}));
- bs[0].onclick=()=>$('m').classList.toggle('open');bs[1].onclick=()=>fire('KeyC');bs[2].onclick=()=>fire('KeyX');bs[3].onclick=()=>fire('KeyM');bs[4].onclick=()=>fire('KeyR');
+ bs[0].onclick=()=>{document.body.classList.toggle('mopen',$('m').classList.toggle('open'))};bs[1].onclick=()=>fire('KeyC');bs[2].onclick=()=>fire('KeyX');bs[3].onclick=()=>fire('KeyM');bs[4].onclick=()=>fire('KeyR');
  const RAD=70,el={};['L','R'].forEach(k=>{const e=document.createElement('div');e.className='js';e.innerHTML='<i></i>';e.dataset.l=k=='L'?'油门 / 偏航':'俯仰 / 横滚';document.body.appendChild(e);el[k]=e});
  const rest=k=>{const e=el[k],m=Math.max(24,innerWidth*.08)+sa(k=='L'?'left':'right');e.classList.add('idle');e.style.display=touchUI?'block':'none';e.style.left=(k=='L'?m:innerWidth-m-RAD*2)+'px';e.style.top=(innerHeight-RAD*2-Math.max(36,innerHeight*.08)-sa('bottom'))+'px';e.firstChild.style.transform=''};
  window.rests=()=>{rest('L');rest('R')};window.rests();addEventListener('resize',window.rests);
@@ -301,7 +307,7 @@ function loop(){requestAnimationFrame(loop);const dt=Math.min(.05,clock.getDelta
  else{const d=p.clone().add(V(0,1.3,3.6).applyAxisAngle(Y,yaw));d.y=Math.max(d.y,.4);cam.position.lerp(d,1-Math.exp(-dt*6));cam.lookAt(p.x,p.y+.3,p.z)}
  sun.position.set(p.x+60,100,p.z+40);sun.target.position.copy(p);
  const sp=Math.hypot(v.x,v.z),hd=((-yaw*180/Math.PI)%360+360)%360;
- $('t').innerHTML=`高度 <b>${(p.y-.1).toFixed(1)}</b> m<br>地速 <b>${sp.toFixed(1)}</b> m/s（${(sp*3.6).toFixed(0)} km/h）<br>垂直 <b>${v.y.toFixed(1)}</b> m/s<br>航向 <b>${hd.toFixed(0)}</b>°<br>俯仰 ${(-pit*57.3).toFixed(0)}° · 横滚 ${(-rol*57.3).toFixed(0)}°<br>电量 <b style="color:${bat<20?'#ff6b6b':'#9fe3b5'}">${bat.toFixed(0)}%</b><br>风 ${['无','微风','强风'][wind]} · ${fpv?'第一人称':'跟随'}<br>模式 <b>${acro?'Acro':'Angle'}</b><br>${wx?'雨天':'晴'} · ${night?'夜间':'白天'}${ir?' · 红外':''}`;
+ $('t').innerHTML=touchUI?`高度 <b>${(p.y-.1).toFixed(1)}</b> m · 速度 <b>${sp.toFixed(1)}</b> m/s<br>垂直 ${v.y.toFixed(1)} · 航向 ${hd.toFixed(0)}°<br>电量 <b style="color:${bat<20?'#ff6b6b':'#9fe3b5'}">${bat.toFixed(0)}%</b> · ${acro?'Acro':'Angle'}<br>${wx?'雨':'晴'}${night?' · 夜':''}${ir?' · 红外':''}${fpv?' · 第一人称':''}`:`高度 <b>${(p.y-.1).toFixed(1)}</b> m<br>地速 <b>${sp.toFixed(1)}</b> m/s（${(sp*3.6).toFixed(0)} km/h）<br>垂直 <b>${v.y.toFixed(1)}</b> m/s<br>航向 <b>${hd.toFixed(0)}</b>°<br>俯仰 ${(-pit*57.3).toFixed(0)}° · 横滚 ${(-rol*57.3).toFixed(0)}°<br>电量 <b style="color:${bat<20?'#ff6b6b':'#9fe3b5'}">${bat.toFixed(0)}%</b><br>风 ${['无','微风','强风'][wind]} · ${fpv?'第一人称':'跟随'}<br>模式 <b>${acro?'Acro':'Angle'}</b><br>${wx?'雨天':'晴'} · ${night?'夜间':'白天'}${ir?' · 红外':''}`;
  sky.position.copy(cam.position);sock.rotation.z=-1.5708-[1.4,.6,.1][wind]+Math.sin(tt*6)*.05*wind;lamp.position.copy(p);lt.position.set(p.x-Math.sin(yaw)*30,p.y-8,p.z-Math.cos(yaw)*30);stepPL(dt);stepRain(dt);pmUpd();if(ir&&fpv)renderTh(cam,irRTm,null);else R.render(S,cam);gimbal();tl+=dt;if(tl>.4){tl=0;trail.push([p.x,p.z]);if(trail.length>500)trail.shift()}if(mapOn&&(mf=(mf+1)%3)==0)drawMap()}
 start(0);loop();if(touch)showMsg('左摇杆：油门/偏航　右摇杆：俯仰/横滚',4500);
 </script></body></html>
