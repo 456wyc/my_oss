@@ -66,6 +66,13 @@
       "tags": ["剧本", "编辑器", "AI", "写作"],
       "accent": ["#a855f7", "#f59e0b"],
       "highlights": ["大模型辅助写作", "剧本结构化编辑", "网页打开即用"]
+    },
+    {
+      "repo": "ScreenPrivacyGuard",
+      "category": "桌面应用",
+      "tags": ["Python", "OpenCV", "人脸识别", "隐私保护", "本地离线"],
+      "accent": ["#0ea5e9", "#6366f1"],
+      "highlights": ["纯本地 AI 隐私屏保", "陌生人靠近或机主离开自动遮挡", "按距离渐变模糊并防闪烁"]
     }
   ]
 }

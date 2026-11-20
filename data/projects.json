@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-11-16T11:41:31.091Z",
+  "generatedAt": "2026-11-20T09:38:37.262Z",
   "owner": {
     "login": "456wyc",
     "name": "456wyc",
     "bio": "",
     "avatarUrl": "https://avatars.githubusercontent.com/u/3086528?v=4",
     "htmlUrl": "https://github.com/456wyc",
-    "publicRepos": 33,
+    "publicRepos": 34,
     "followers": 26
   },
   "projects": [
@@ -556,6 +556,56 @@
         "大模型辅助写作",
         "剧本结构化编辑",
         "网页打开即用"
+      ],
+      "featured": false
+    },
+    {
+      "id": "screenprivacyguard",
+      "name": "ScreenPrivacyGuard",
+      "fullName": "456wyc/ScreenPrivacyGuard",
+      "description": "屏安符--屏幕隐私安全保护",
+      "url": "https://github.com/456wyc/ScreenPrivacyGuard",
+      "cloneUrl": "https://github.com/456wyc/ScreenPrivacyGuard.git",
+      "demoUrl": "https://456wyc.github.io/ScreenPrivacyGuard/",
+      "homepageHost": "456wyc.github.io",
+      "demoTitle": "屏安符 · ScreenPrivacyGuard — 纯本地 AI 隐私屏保",
+      "demoDescription": "屏安符是一款纯本地运行的 AI 隐私屏保：摄像头识别陌生人或机主离开，自动模糊/遮挡屏幕。不联网、不上传，保护你的屏幕隐私。",
+      "language": "Python",
+      "languages": [
+        {
+          "name": "Python",
+          "value": 63184,
+          "percent": 100
+        }
+      ],
+      "stars": 0,
+      "forks": 0,
+      "issues": 0,
+      "watchers": 0,
+      "license": "NOASSERTION",
+      "topics": [],
+      "archived": false,
+      "createdAt": "2026-11-20T09:01:35Z",
+      "updatedAt": "2026-11-20T09:27:17Z",
+      "pushedAt": "2026-11-20T09:31:20Z",
+      "defaultBranch": "main",
+      "hasPages": true,
+      "category": "桌面应用",
+      "tags": [
+        "Python",
+        "OpenCV",
+        "人脸识别",
+        "隐私保护",
+        "本地离线"
+      ],
+      "accent": [
+        "#0ea5e9",
+        "#6366f1"
+      ],
+      "highlights": [
+        "纯本地 AI 隐私屏保",
+        "陌生人靠近或机主离开自动遮挡",
+        "按距离渐变模糊并防闪烁"
       ],
       "featured": false
     }
